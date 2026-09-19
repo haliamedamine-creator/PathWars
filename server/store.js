@@ -16,5 +16,6 @@ export const {
   ownerOf, recordDay, boardToday, todayMe, boardAll, accountRank, mskDay,
   deviceByNick, latestDevice,
   upsertReview, reviewStats, reviewRows, toggleLike,
+  logVisit,
   addFriendship, removeFriendship, friendIds, addRequest, answerRequest, incomingRequests,
 } = backend;

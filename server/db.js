@@ -172,6 +172,37 @@ export function incomingRequests(id) {
   return db.prepare('SELECT from_id FROM friend_requests WHERE to_id = ?').all(id).map((r) => r.from_id);
 }
 
+/* ---- visits: raw analytics rows behind /api/visit ----
+   One row per call (the client fires on boot, per game and on install).
+   Day uses the Moscow boundary like everything else. */
+db.exec(`
+CREATE TABLE IF NOT EXISTS visits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  device TEXT NOT NULL DEFAULT '',
+  nick TEXT NOT NULL DEFAULT '',
+  game INTEGER NOT NULL DEFAULT 0,
+  lang TEXT NOT NULL DEFAULT '',
+  tz TEXT NOT NULL DEFAULT '',
+  installed INTEGER NOT NULL DEFAULT 0,
+  src TEXT NOT NULL DEFAULT '',
+  day TEXT NOT NULL DEFAULT '',
+  at INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_visits_day ON visits(day);
+`);
+
+export function logVisit(v) {
+  try {
+    db.prepare(`INSERT INTO visits (device, nick, game, lang, tz, installed, src, day, at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(
+        String(v.device || '').slice(0, 64), String(v.nick || '').slice(0, 16),
+        v.game ? 1 : 0, String(v.lang || '').slice(0, 16), String(v.tz || '').slice(0, 64),
+        v.installed ? 1 : 0, String(v.src || '').slice(0, 40),
+        mskDay(), Date.now());
+  } catch (e) { console.error('[visit]', e?.message || e); }
+}
+
 /* ---- reviews: one rating per points-owner, likes per device ----
    The gate (account, or ten games on the device) is enforced by the
    endpoint; the table just keeps the latest word of each owner. */

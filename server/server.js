@@ -23,6 +23,7 @@ import {
   ownerOf, recordDay, boardToday, todayMe, boardAll, accountRank, mskDay,
   deviceByNick, latestDevice,
   upsertReview, reviewStats, reviewRows, toggleLike,
+  logVisit,
   addFriendship, removeFriendship, friendIds, addRequest, answerRequest, incomingRequests,
 } from './store.js';
 
@@ -329,8 +330,14 @@ async function handleApi(req, res) {
     return json(res, 200, { player: null });
   }
 
-  if (p === '/api/review' && req.method === 'POST') {
+  // fire-and-forget analytics: never break the game over a stat row
+  if (p === '/api/visit' && req.method === 'POST') {
     const b = await readBody(req);
+    await logVisit(b);
+    return json(res, 200, { ok: true });
+  }
+
+  if (p === '/api/review' && req.method === 'POST') {    const b = await readBody(req);
     const stars = Number(b.stars);
     if (!(stars >= 1 && stars <= 5)) return json(res, 400, { error: 'stars' });
     const device = String(b.device || '');

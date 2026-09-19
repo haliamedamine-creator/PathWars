@@ -237,6 +237,33 @@ export async function incomingRequests(id) {
 }
 
 await pool.query(`
+CREATE TABLE IF NOT EXISTS visits (
+  id SERIAL PRIMARY KEY,
+  device TEXT NOT NULL DEFAULT '',
+  nick TEXT NOT NULL DEFAULT '',
+  game INTEGER NOT NULL DEFAULT 0,
+  lang TEXT NOT NULL DEFAULT '',
+  tz TEXT NOT NULL DEFAULT '',
+  installed INTEGER NOT NULL DEFAULT 0,
+  src TEXT NOT NULL DEFAULT '',
+  day TEXT NOT NULL DEFAULT '',
+  at BIGINT NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_visits_day ON visits(day);
+`);
+
+export async function logVisit(v) {
+  try {
+    await pool.query(`INSERT INTO visits (device, nick, game, lang, tz, installed, src, day, at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [String(v.device || '').slice(0, 64), String(v.nick || '').slice(0, 16),
+        v.game ? 1 : 0, String(v.lang || '').slice(0, 16), String(v.tz || '').slice(0, 64),
+        v.installed ? 1 : 0, String(v.src || '').slice(0, 40),
+        mskDay(), Date.now()]);
+  } catch (e) { console.error('[visit]', e?.message || e); }
+}
+
+await pool.query(`
 CREATE TABLE IF NOT EXISTS reviews (
   id SERIAL PRIMARY KEY,
   owner TEXT NOT NULL UNIQUE,
