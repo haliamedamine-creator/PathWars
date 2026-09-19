@@ -15,5 +15,6 @@ export const {
   clearNickNotice, linkDevice, deleteUserLocal,
   ownerOf, recordDay, boardToday, todayMe, boardAll, accountRank, mskDay,
   deviceByNick, latestDevice,
+  upsertReview, reviewStats, reviewRows, toggleLike,
   addFriendship, removeFriendship, friendIds, addRequest, answerRequest, incomingRequests,
 } = backend;

@@ -22,6 +22,7 @@ import {
   clearNickNotice, linkDevice, deleteUserLocal,
   ownerOf, recordDay, boardToday, todayMe, boardAll, accountRank, mskDay,
   deviceByNick, latestDevice,
+  upsertReview, reviewStats, reviewRows, toggleLike,
   addFriendship, removeFriendship, friendIds, addRequest, answerRequest, incomingRequests,
 } from './store.js';
 
@@ -77,7 +78,38 @@ const MIME = {
 };
 const PAGES = ['ru', 'reviews', 'rules', 'help', 'terms', 'privacy'];
 
-function serveStatic(req, res) {
+/* Ratings a visitor can see: the home pill, the JSON-LD and the reviews
+   score block stay empty until real ratings exist, then the server fills
+   them on every serve. Cached copies go stale, exactly like the original. */
+async function injectRatings(html, page) {
+  let s;
+  try { s = await reviewStats(); } catch { return html; }
+  if (!s.count) return html;
+  const agg = `"aggregateRating":{"@type":"AggregateRating","ratingValue":${s.avg},"ratingCount":${s.count},"bestRating":"5","worstRating":"1"}`;
+  if (page === 'index') {
+    html = html.replace('"@type": "VideoGame","name"', `"@type": "VideoGame",${agg},"name"`);
+    html = html.replace('<a class="rating-pill" id="rating-pill" href="reviews.html" hidden>',
+      `<a class="rating-pill" id="rating-pill" href="reviews.html" aria-label="${s.avg} of 5, ${s.count} ratings">`);
+    html = html.replace('<span class="rp-star">★</span><b>–</b><small></small>',
+      `<span class="rp-star">★</span><b>${s.avg}</b><small>${s.count}</small>`);
+  } else if (page === 'reviews') {
+    html = html.replace('"@type":"SoftwareApplication","name"', `"@type":"SoftwareApplication",${agg},"name"`);
+    html = html.replace('No ratings yet — yours could be the first.', `${s.avg} out of 5 from ${s.count} players.`);
+    html = html.replace('<div class="big"><b>–</b><div class="stars">★★★★★</div><small>No ratings yet</small></div>',
+      `<div class="big"><b>${s.avg}</b><div class="stars">★★★★★</div><small>${s.count} ratings</small></div>`);
+    const bars = [5, 4, 3, 2, 1].map((st) => {
+      const b = s.spread.find((x) => x.stars === st) || { count: 0, pct: 0 };
+      return `<div class="bar"><span class="bl">${'★'.repeat(st)}</span>` +
+        `<span class="bt"><i style="width:${b.pct}%"></i></span>` +
+        `<span class="bn">${b.count} <small>(${b.pct}%)</small></span></div>`;
+    }).join('');
+    html = html.replace('<div class="bars"><p class="lede">Ratings are left inside the game after a match. Play and leave the first one.</p></div>',
+      `<div class="bars">${bars}</div>`);
+  }
+  return html;
+}
+
+async function serveStatic(req, res) {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/api/config') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -117,6 +149,13 @@ function serveStatic(req, res) {
   }
   const headers = { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' };
   if (p === '/sw.js') headers['Service-Worker-Allowed'] = '/';
+  if (p === '/index.html' || p === '/reviews.html') {
+    let html = fs.readFileSync(file, 'utf-8');
+    html = await injectRatings(html, p === '/index.html' ? 'index' : 'reviews');
+    res.writeHead(200, headers);
+    res.end(html);
+    return;
+  }
   res.writeHead(200, headers);
   fs.createReadStream(file).pipe(res);
 }
@@ -290,16 +329,58 @@ async function handleApi(req, res) {
     return json(res, 200, { player: null });
   }
 
+  if (p === '/api/review' && req.method === 'POST') {
+    const b = await readBody(req);
+    const stars = Number(b.stars);
+    if (!(stars >= 1 && stars <= 5)) return json(res, 400, { error: 'stars' });
+    const device = String(b.device || '');
+    const u = await supaUser(bearer(req));
+    let owner;
+    if (u) {
+      owner = { id: 'u:' + u.id, account: 1 };
+    } else {
+      // the gate mirrors the client: an account, or ten games on the device
+      if (!device) return json(res, 400, { error: 'device' });
+      owner = await ownerOf(device);
+      const d = await getDevice(device);
+      if ((d?.games || 0) < 10) return json(res, 403, { error: 'gated' });
+    }
+    const nick = String(b.nick || owner.nick || '?').slice(0, 16);
+    const text = String(b.text || '').slice(0, 400);
+    const lang = String(b.lang || 'en').slice(0, 8);
+    await upsertReview(owner.id, nick, stars, text, lang);
+    return json(res, 200, {});
+  }
+
+  if (p === '/api/reviews' && req.method === 'GET') {
+    const f = String(url.searchParams.get('f') || 'new');
+    const device = String(url.searchParams.get('device') || '');
+    const s = await reviewStats();
+    return json(res, 200, {
+      count: s.count, avg: s.avg, spread: s.spread,
+      rows: await reviewRows(f, device),
+    });
+  }
+
+  if (p === '/api/review/like' && req.method === 'POST') {
+    const b = await readBody(req);
+    const r = await toggleLike(Number(b.id), String(b.device || ''));
+    if (!r) return json(res, 400, { error: 'like' });
+    return json(res, 200, r);
+  }
+
   return json(res, 404, { error: 'not found' });
 }
 
 const server = http.createServer((req, res) => {
-  try {
-    const url = new URL(req.url, 'http://x');
-    if (url.pathname.startsWith('/api/')) { handleApi(req, res); return; }
-    if (req.method !== 'GET') { res.writeHead(405); res.end(); return; }
-    serveStatic(req, res);
-  } catch { res.writeHead(500); res.end(); }
+  (async () => {
+    try {
+      const url = new URL(req.url, 'http://x');
+      if (url.pathname.startsWith('/api/')) { await handleApi(req, res); return; }
+      if (req.method !== 'GET') { res.writeHead(405); res.end(); return; }
+      await serveStatic(req, res);
+    } catch { try { res.writeHead(500); res.end(); } catch {} }
+  })();
 });
 
 /* ================= live state ================= */

@@ -83,6 +83,19 @@ export function linkDevice(deviceId, userId) {
 }
 export function deleteUserLocal(userId) {
   const devs = db.prepare('SELECT id FROM devices WHERE user_id = ?').all(userId).map((r) => r.id);
+  // ratings, likes and day rows die with the account — deletion means everything
+  for (const o of [`u:${userId}`, ...devs]) {
+    const rids = db.prepare('SELECT id FROM reviews WHERE owner = ?').all(o).map((r) => r.id);
+    for (const id of rids) db.prepare('DELETE FROM review_likes WHERE review = ?').run(id);
+    db.prepare('DELETE FROM reviews WHERE owner = ?').run(o);
+    db.prepare('DELETE FROM day_points WHERE owner = ?').run(o);
+  }
+  const liked = db.prepare(`SELECT DISTINCT review FROM review_likes WHERE device IN (${devs.map(() => '?').join(',') || "''"})`).all(...devs);
+  db.prepare(`DELETE FROM review_likes WHERE device IN (${devs.map(() => '?').join(',') || "''"})`).run(...devs);
+  for (const r of liked) {
+    const n = db.prepare('SELECT COUNT(*) AS c FROM review_likes WHERE review = ?').get(r.review).c;
+    db.prepare('UPDATE reviews SET likes = ? WHERE id = ?').run(n, r.review);
+  }
   for (const d of devs) {
     db.prepare('DELETE FROM friendships WHERE a = ? OR b = ?').run(d, d);
     db.prepare('DELETE FROM friend_requests WHERE from_id = ? OR to_id = ?').run(d, d);
@@ -157,6 +170,79 @@ export function answerRequest(from, to, yes) {
 
 export function incomingRequests(id) {
   return db.prepare('SELECT from_id FROM friend_requests WHERE to_id = ?').all(id).map((r) => r.from_id);
+}
+
+/* ---- reviews: one rating per points-owner, likes per device ----
+   The gate (account, or ten games on the device) is enforced by the
+   endpoint; the table just keeps the latest word of each owner. */
+db.exec(`
+CREATE TABLE IF NOT EXISTS reviews (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  owner TEXT NOT NULL UNIQUE,
+  nick TEXT NOT NULL DEFAULT '',
+  stars INTEGER NOT NULL DEFAULT 5,
+  text TEXT NOT NULL DEFAULT '',
+  lang TEXT NOT NULL DEFAULT 'en',
+  reply TEXT,
+  likes INTEGER NOT NULL DEFAULT 0,
+  at INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS review_likes (
+  review INTEGER NOT NULL, device TEXT NOT NULL,
+  PRIMARY KEY (review, device)
+);
+`);
+
+export function upsertReview(owner, nick, stars, text, lang) {
+  const now = Date.now();
+  db.prepare(`INSERT INTO reviews (owner, nick, stars, text, lang, at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(owner) DO UPDATE SET nick = excluded.nick, stars = excluded.stars,
+      text = excluded.text, lang = excluded.lang, at = excluded.at`)
+    .run(owner, nick, stars, text, lang, now);
+  return db.prepare('SELECT id FROM reviews WHERE owner = ?').get(owner)?.id ?? null;
+}
+export function reviewStats() {
+  const rows = db.prepare('SELECT stars, COUNT(*) AS c FROM reviews GROUP BY stars').all();
+  const byStar = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let count = 0, sum = 0;
+  for (const r of rows) {
+    if (!(r.stars in byStar)) continue;
+    byStar[r.stars] = r.c; count += r.c; sum += r.stars * r.c;
+  }
+  const avg = count ? Math.round((sum / count) * 10) / 10 : 0;
+  const spread = [5, 4, 3, 2, 1].map((s) => ({
+    stars: s, count: byStar[s], pct: count ? Math.round((100 * byStar[s]) / count) : 0,
+  }));
+  return { count, avg, spread };
+}
+const REVIEW_FILTERS = {
+  new:   { w: '', o: 'r.at DESC, r.id DESC' },
+  old:   { w: '', o: 'r.at ASC, r.id ASC' },
+  text:  { w: "AND r.text <> ''", o: 'r.at DESC, r.id DESC' },
+  good:  { w: 'AND r.stars >= 4', o: 'r.at DESC, r.id DESC' },
+  bad:   { w: 'AND r.stars <= 3', o: 'r.at DESC, r.id DESC' },
+  liked: { w: '', o: 'r.likes DESC, r.at DESC, r.id DESC' },
+};
+export function reviewRows(filter, device, limit = 100) {
+  const f = REVIEW_FILTERS[filter] || REVIEW_FILTERS.new;
+  const rows = db.prepare(`SELECT r.id, r.nick, r.stars, r.text, r.reply, r.at, r.likes,
+      CASE WHEN l.device IS NULL THEN 0 ELSE 1 END AS liked
+    FROM reviews r LEFT JOIN review_likes l ON l.review = r.id AND l.device = ?
+    WHERE 1 = 1 ${f.w} ORDER BY ${f.o} LIMIT ?`).all(device || '', limit);
+  return rows.map((r) => ({ ...r, at: new Date(r.at).toISOString(), liked: Boolean(r.liked) }));
+}
+export function toggleLike(id, device) {
+  if (!id || !device) return null;
+  const has = db.prepare('SELECT 1 FROM review_likes WHERE review = ? AND device = ?').get(id, device);
+  if (has) db.prepare('DELETE FROM review_likes WHERE review = ? AND device = ?').run(id, device);
+  else {
+    if (!db.prepare('SELECT 1 FROM reviews WHERE id = ?').get(id)) return null;
+    db.prepare('INSERT OR IGNORE INTO review_likes (review, device) VALUES (?, ?)').run(id, device);
+  }
+  const n = db.prepare('SELECT COUNT(*) AS c FROM review_likes WHERE review = ?').get(id).c;
+  db.prepare('UPDATE reviews SET likes = ? WHERE id = ?').run(n, id);
+  return { likes: n, liked: !has };
 }
 
 /* ---- leaderboard: one row per points-owner per Moscow day ----

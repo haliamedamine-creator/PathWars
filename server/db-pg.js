@@ -133,6 +133,20 @@ export async function linkDevice(deviceId, userId) {
 }
 export async function deleteUserLocal(userId) {
   const devs = (await pool.query('SELECT id FROM devices WHERE user_id = $1', [userId])).rows.map((r) => r.id);
+  for (const o of [`u:${userId}`, ...devs]) {
+    const rids = (await pool.query('SELECT id FROM reviews WHERE owner = $1', [o])).rows;
+    for (const r of rids) await pool.query('DELETE FROM review_likes WHERE review = $1', [r.id]);
+    await pool.query('DELETE FROM reviews WHERE owner = $1', [o]);
+    await pool.query('DELETE FROM day_points WHERE owner = $1', [o]);
+  }
+  if (devs.length) {
+    const liked = (await pool.query('SELECT DISTINCT review FROM review_likes WHERE device = ANY($1)', [devs])).rows;
+    await pool.query('DELETE FROM review_likes WHERE device = ANY($1)', [devs]);
+    for (const r of liked) {
+      const n = await pool.query('SELECT COUNT(*) AS c FROM review_likes WHERE review = $1', [r.review]);
+      await pool.query('UPDATE reviews SET likes = $1 WHERE id = $2', [Number(n.rows[0].c), r.review]);
+    }
+  }
   for (const d of devs) {
     await pool.query('DELETE FROM friendships WHERE a = $1 OR b = $1', [d]);
     await pool.query('DELETE FROM friend_requests WHERE from_id = $1 OR to_id = $1', [d]);
@@ -220,4 +234,79 @@ export async function answerRequest(from, to, yes) {
 export async function incomingRequests(id) {
   const r = await pool.query('SELECT from_id FROM friend_requests WHERE to_id = $1', [id]);
   return r.rows.map((x) => x.from_id);
+}
+
+await pool.query(`
+CREATE TABLE IF NOT EXISTS reviews (
+  id SERIAL PRIMARY KEY,
+  owner TEXT NOT NULL UNIQUE,
+  nick TEXT NOT NULL DEFAULT '',
+  stars INTEGER NOT NULL DEFAULT 5,
+  text TEXT NOT NULL DEFAULT '',
+  lang TEXT NOT NULL DEFAULT 'en',
+  reply TEXT,
+  likes INTEGER NOT NULL DEFAULT 0,
+  at BIGINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS review_likes (
+  review INTEGER NOT NULL, device TEXT NOT NULL,
+  PRIMARY KEY (review, device)
+);
+`);
+
+export async function upsertReview(owner, nick, stars, text, lang) {
+  const now = Date.now();
+  await pool.query(`INSERT INTO reviews (owner, nick, stars, text, lang, at)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT(owner) DO UPDATE SET nick = excluded.nick, stars = excluded.stars,
+      text = excluded.text, lang = excluded.lang, at = excluded.at`,
+    [owner, nick, stars, text, lang, now]);
+  const r = await pool.query('SELECT id FROM reviews WHERE owner = $1', [owner]);
+  return r.rows[0] ? r.rows[0].id : null;
+}
+export async function reviewStats() {
+  const r = await pool.query('SELECT stars, COUNT(*) AS c FROM reviews GROUP BY stars');
+  const byStar = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let count = 0, sum = 0;
+  for (const row of r.rows) {
+    const s = Number(row.stars), c = Number(row.c);
+    if (!(s in byStar)) continue;
+    byStar[s] = c; count += c; sum += s * c;
+  }
+  const avg = count ? Math.round((sum / count) * 10) / 10 : 0;
+  const spread = [5, 4, 3, 2, 1].map((s) => ({
+    stars: s, count: byStar[s], pct: count ? Math.round((100 * byStar[s]) / count) : 0,
+  }));
+  return { count, avg, spread };
+}
+const REVIEW_FILTERS = {
+  new:   { w: '', o: 'r.at DESC, r.id DESC' },
+  old:   { w: '', o: 'r.at ASC, r.id ASC' },
+  text:  { w: "AND r.text <> ''", o: 'r.at DESC, r.id DESC' },
+  good:  { w: 'AND r.stars >= 4', o: 'r.at DESC, r.id DESC' },
+  bad:   { w: 'AND r.stars <= 3', o: 'r.at DESC, r.id DESC' },
+  liked: { w: '', o: 'r.likes DESC, r.at DESC, r.id DESC' },
+};
+export async function reviewRows(filter, device, limit = 100) {
+  const f = REVIEW_FILTERS[filter] || REVIEW_FILTERS.new;
+  const r = await pool.query(`SELECT r.id, r.nick, r.stars, r.text, r.reply, r.at, r.likes,
+      CASE WHEN l.device IS NULL THEN 0 ELSE 1 END AS liked
+    FROM reviews r LEFT JOIN review_likes l ON l.review = r.id AND l.device = $1
+    WHERE 1 = 1 ${f.w} ORDER BY ${f.o} LIMIT $2`, [device || '', limit]);
+  return r.rows.map((x) => ({ ...x, at: new Date(Number(x.at)).toISOString(), liked: Boolean(x.liked) }));
+}
+export async function toggleLike(id, device) {
+  if (!id || !device) return null;
+  const has = await pool.query('SELECT 1 FROM review_likes WHERE review = $1 AND device = $2', [id, device]);
+  if (has.rows[0]) {
+    await pool.query('DELETE FROM review_likes WHERE review = $1 AND device = $2', [id, device]);
+  } else {
+    const ok = await pool.query('SELECT 1 FROM reviews WHERE id = $1', [id]);
+    if (!ok.rows[0]) return null;
+    await pool.query('INSERT INTO review_likes (review, device) VALUES ($1, $2) ON CONFLICT DO NOTHING', [id, device]);
+  }
+  const n = await pool.query('SELECT COUNT(*) AS c FROM review_likes WHERE review = $1', [id]);
+  const likes = Number(n.rows[0].c);
+  await pool.query('UPDATE reviews SET likes = $1 WHERE id = $2', [likes, id]);
+  return { likes, liked: !has.rows[0] };
 }
