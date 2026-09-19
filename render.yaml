@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: pathwars
+    runtime: node
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: node server.js
+    healthCheckPath: /api/config
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false

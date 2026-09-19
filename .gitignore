@@ -1,0 +1,6 @@
+# never push secrets or local data
+node_modules/
+*.sqlite
+*.sqlite-journal
+play-local.bat
+.env

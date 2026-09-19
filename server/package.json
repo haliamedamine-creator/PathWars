@@ -1,0 +1,15 @@
+{
+  "name": "pathwars-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PathWars multiplayer backend: static hosting, guest accounts and WebSocket match server (SQLite locally, Postgres via DATABASE_URL).",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.0",
+    "ws": "^8.18.0"
+  }
+}

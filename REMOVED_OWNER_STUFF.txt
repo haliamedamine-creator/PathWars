@@ -1,0 +1,312 @@
+REMOVED OWNER-SPECIFIC STUFF — WallRush HTTrack cleanup (Phase 2)
+Date: 2026-09-19
+Purpose: original owner's monetization / identity removed from app/ for rebranding.
+Nothing here exists in app/ anymore. Restore from this file if ever needed.
+Replacement markers in the code point back here (<!-- removed: ... -->).
+
+Counts
+- index.html: 4 social links, 3 ad-script blocks, 1 Telegram contact button,
+  1 obfuscated email link, 1 email-decode script tag (inside leaderboard ad div)
+- 16 content pages: 16 email-decode script tags, 22 Telegram links, 16 obfuscated email links
+- 2 plain-text FAQ answers: help.html "Message us on Telegram: @Karoboev",
+  ru/pomosh.html "Напиши в Telegram: @Karoboev" (both neutralized to "[removed]")
+- deleted file: app/cdn-cgi/l/email-protection.html (HTTrack 404 capture, Phase 1)
+- deleted file: app/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js (Phase 2, unreferenced after cleanup)
+
+==================== SECTION A — app/index.html ====================
+
+--- app/index.html [social links, former .social-row anchors] ---
+1. class="soc soc-ig" href="https://www.instagram.com/wall_rush_" (with inline Instagram SVG)
+2. class="soc soc-tt" href="https://www.tiktok.com/@wall_rush_" (with inline TikTok SVG)
+3. class="soc soc-tg" href="https://t.me/wall_rush1" (with inline Telegram SVG)
+4. class="soc soc-yt" href="https://www.youtube.com/@wall_rush" (with inline YouTube SVG)
+RESTORED 2026-09-19: the 4 icon anchors (classes + inline SVGs + aria-labels)
+were put back in .social-row with href="#" placeholders and no target/rel.
+UPDATED 2026-09-19: TikTok slot replaced by Facebook (owner has no TikTok);
+real PathWars URLs installed with target=_blank: IG Path.Wars, FB PathWars,
+TG PathWarsChannel, YT @Path_Wars. Original owner hrefs below stay for reference.
+
+--- app/index.html [home ad slot: HilltopAds 300x100 loader] ---
+s.src = "//massivesalad.com/b/XoVds/d.G/la0_Y/WQcM/Oe/mq9SufZ/UWl/k/P/THcly/NBTCUL2NMIT-MAtLNmzVIO1tNmT/YyxKNCwO";
+Full block was: <div class="ad-slot" aria-hidden="true"><script>if (!window.WR_EMBED) (function(osjgznp){...l.parentNode.insertBefore(s, l);})({})</script></div>
+Replaced with: <!-- removed: home ad slot (see REMOVED_OWNER_STUFF.txt) -->
+
+--- app/index.html [leaderboard ad slot: HilltopAds 300x250 loader] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+s.src = "//massivesalad.com/bwX.VrsEdqGmlv0/YpW/cC/WeSm_9zuuZSU/lokvPBTVcUyGNeTNUA2jMfz/c/trNIzTIm1ENVTtY-0/MTQb";
+Full block was: <div class="ad-slot ad-slot-lg" aria-hidden="true"><script ...email-decode...></script><script>if (!window.WR_EMBED) (function(immt){...})({})</script></div>
+Replaced with: <!-- removed: leaderboard ad slot (see REMOVED_OWNER_STUFF.txt) -->
+
+--- app/index.html [profile ad slot: HilltopAds 300x250 loader] ---
+s.src = "//massivesalad.com/bVXGV.sZdXGplL0oYoWmcJ/Ie/mg9/uAZdUZl/k/PyTJcMyfN/zBQv5KNmzDM/t-NfzZIt3pNjDMk/3vNYwP";
+Full block was: <div class="ad-slot ad-slot-lg" aria-hidden="true"><script>if (!window.WR_EMBED) (function(usypz){...})({})</script></div>
+Replaced with: <!-- removed: profile ad slot (see REMOVED_OWNER_STUFF.txt) -->
+
+--- app/index.html [advertise contact button] ---
+<a class="btn-big btn-outline" id="ads-contact" href="https://t.me/Karoboev" target="_blank" rel="noopener noreferrer" data-i18n="ads_tg"></a>
+Kept as element (layout), neutralized to href="#". Original href above.
+
+--- app/index.html [advertise email link] ---
+<a class="btn-big btn-outline ads-mail" href="cdn-cgi/l/email-protection.html#82e3e6f1c2f5e3eeeef0f7f1eaacedeceeebece7bdf1f7e0e8e7e1f6bfd5e3eeeed0f7f1eaa7b0b2600216a7b0b2e3e6f4e7f0f6ebf1ebece5">[envelope] <span class="__cf_email__" data-cfemail="abcacfd8ebdccac7c7d9ded8c385c4c5c7c2c5ce">[email protected]</span></a>
+Kept as element (layout), neutralized to href="#" with text "[removed]". Original above.
+(Note: #ads-email-copy button kept untouched — js/appb3b0.js binds to it; it copies nothing now.)
+
+==================== SECTION B — content pages ====================
+
+--- help.html:79 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- help.html:76 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- help.html:77 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- help.html:77 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#c6a7a2b586b1a7aaaab4b3b5aee8a9a8aaafa8a3"><span class="__cf_email__" data-cfemail="7a1b1e093a0d1b1616080f09125415141613141f">[email&#160;protected]</span></a>
+
+--- privacy.html:88 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- privacy.html:85 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- privacy.html:86 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- privacy.html:86 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#6f0e0b1c2f180e03031d1a1c074100010306010a"><span class="__cf_email__" data-cfemail="2445405764534548485651574c0a4b4a484d4a41">[email&#160;protected]</span></a>
+
+--- reviews.html:1166 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- reviews.html:1163 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- reviews.html:1163 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#4524213605322429293730362d6b2a2b292c2b20"><span class="__cf_email__" data-cfemail="bddcd9cefdcadcd1d1cfc8ced593d2d3d1d4d3d8">[email&#160;protected]</span></a>
+
+--- reviews2dab.html:581 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- reviews2dab.html:578 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- reviews2dab.html:578 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#5534312615223439392720263d7b3a3b393c3b30"><span class="__cf_email__" data-cfemail="f0919483b087919c9c82858398de9f9e9c999e95">[email&#160;protected]</span></a>
+
+--- reviews43c8.html:1166 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- reviews43c8.html:1163 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- reviews43c8.html:1163 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#204144536057414c4c525553480e4f4e4c494e45"><span class="__cf_email__" data-cfemail="9afbfee9daedfbf6f6e8efe9f2b4f5f4f6f3f4ff">[email&#160;protected]</span></a>
+
+--- reviews8ed3.html:446 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- reviews8ed3.html:443 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- reviews8ed3.html:443 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#badbdec9facddbd6d6c8cfc9d294d5d4d6d3d4df"><span class="__cf_email__" data-cfemail="ccada8bf8cbbada0a0beb9bfa4e2a3a2a0a5a2a9">[email&#160;protected]</span></a>
+
+--- reviewsaa20.html:1166 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- reviewsaa20.html:1163 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- reviewsaa20.html:1163 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#036267704374626f6f7176706b2d6c6d6f6a6d66"><span class="__cf_email__" data-cfemail="bedfdacdfec9dfd2d2cccbcdd690d1d0d2d7d0db">[email&#160;protected]</span></a>
+
+--- reviewse60e.html:1166 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- reviewse60e.html:1163 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- reviewse60e.html:1163 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#6a0b0e192a1d0b0606181f19024405040603040f"><span class="__cf_email__" data-cfemail="533237201324323f3f2126203b7d3c3d3f3a3d36">[email&#160;protected]</span></a>
+
+--- reviewsf1aa.html:1166 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- reviewsf1aa.html:1163 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- reviewsf1aa.html:1163 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#aecfcaddeed9cfc2c2dcdbddc680c1c0c2c7c0cb"><span class="__cf_email__" data-cfemail="2445405764534548485651574c0a4b4a484d4a41">[email&#160;protected]</span></a>
+
+--- ru/konfidencialnost.html:88 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- ru/konfidencialnost.html:85 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- ru/konfidencialnost.html:86 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- ru/konfidencialnost.html:86 [obfuscated owner email] ---
+<a href="../cdn-cgi/l/email-protection.html#3d5c594e7d4a5c51514f484e5513525351545358"><span class="__cf_email__" data-cfemail="e4858097a4938588889691978cca8b8a888d8a81">[email&#160;protected]</span></a>
+
+--- ru/pomosh.html:79 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- ru/pomosh.html:76 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- ru/pomosh.html:77 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- ru/pomosh.html:77 [obfuscated owner email] ---
+<a href="../cdn-cgi/l/email-protection.html#d3b2b7a093a4b2bfbfa1a6a0bbfdbcbdbfbabdb6"><span class="__cf_email__" data-cfemail="c2a3a6b182b5a3aeaeb0b7b1aaecadacaeabaca7">[email&#160;protected]</span></a>
+
+--- ru/pravila.html:84 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- ru/pravila.html:82 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- ru/pravila.html:82 [obfuscated owner email] ---
+<a href="../cdn-cgi/l/email-protection.html#92f3f6e1d2e5f3fefee0e7e1fabcfdfcfefbfcf7"><span class="__cf_email__" data-cfemail="620306112215030e0e1017110a4c0d0c0e0b0c07">[email&#160;protected]</span></a>
+
+--- ru/usloviya.html:94 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- ru/usloviya.html:91 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- ru/usloviya.html:92 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- ru/usloviya.html:92 [obfuscated owner email] ---
+<a href="../cdn-cgi/l/email-protection.html#2d4c495e6d5a4c41415f585e4503424341444348"><span class="__cf_email__" data-cfemail="fc9d988fbc8b9d90908e898f94d2939290959299">[email&#160;protected]</span></a>
+
+--- ru.html:120 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- ru.html:118 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- ru.html:118 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#2f4e4b5c6f584e43435d5a5c470140414346414a"><span class="__cf_email__" data-cfemail="2f4e4b5c6f584e43435d5a5c470140414346414a">[email&#160;protected]</span></a>
+
+--- rules.html:84 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- rules.html:82 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- rules.html:82 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#1c7d786f5c6b7d70706e696f7432737270757279"><span class="__cf_email__" data-cfemail="a7c6c3d4e7d0c6cbcbd5d2d4cf89c8c9cbcec9c2">[email&#160;protected]</span></a>
+
+--- terms.html:94 [cloudflare email-decode script] ---
+<script data-cfasync="false" src="cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+
+--- terms.html:91 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- terms.html:92 [telegram contact] ---
+<a href="https://t.me/Karoboev">@Karoboev</a>
+
+--- terms.html:92 [obfuscated owner email] ---
+<a href="cdn-cgi/l/email-protection.html#97f6f3e4d7e0f6fbfbe5e2e4ffb9f8f9fbfef9f2"><span class="__cf_email__" data-cfemail="365752457641575a5a4443455e1859585a5f5853">[email&#160;protected]</span></a>
+
+--- app/index.html [old-owner site-verification meta, removed in PathWars rebrand] ---
+index.html: <meta name="78579d7798af5fd100ce65fc79be9e3e89a522e7" content="78579d7798af5fd100ce65fc79be9e3e89a522e7" />
+(40-hex-char token, likely an ad-network/site-verification code of the previous owner; useless for the rebrand.)
+
+--- language packs (rebranded in place during move to js/lang/) ---
+fa.js, tr.js, fr.js, es.js moved from app/js/ to app/js/lang/;
+WallRush->PathWars, wallrush.online->example.com, @Karoboev->[removed].
+Hits:
+--- js/lang/fa.js [key=?] WallRush ---
+--- js/lang/fa.js [key=invite_text] WallRush ---
+--- js/lang/fa.js [key=support] WallRush ---
+--- js/lang/fa.js [key=support_title] WallRush ---
+--- js/lang/fa.js [key=ads_title] WallRush ---
+--- js/lang/fa.js [key=ads_f2_sub] WallRush ---
+--- js/lang/fa.js [key=about_title] WallRush ---
+--- js/lang/fa.js [key=about_body] WallRush ---
+--- js/lang/fa.js [key=rate_title] WallRush ---
+--- js/lang/fa.js [key=install_banner] WallRush ---
+--- js/lang/fa.js [key=legal_agree] WallRush ---
+--- js/lang/fa.js [key=terms_body] WallRush ---
+--- js/lang/fa.js [key=terms_body] wallrush.online ---
+--- js/lang/fa.js [key=terms_body] WallRush ---
+--- js/lang/fa.js [key=terms_body] WallRush ---
+--- js/lang/fa.js [key=terms_body] @Karoboev ---
+--- js/lang/fa.js [key=privacy_body] WallRush ---
+--- js/lang/fa.js [key=privacy_body] wallrush.online ---
+--- js/lang/fa.js [key=privacy_body] WallRush ---
+--- js/lang/fa.js [key=privacy_body] @Karoboev ---
+--- js/lang/fa.js [key=help_body] @Karoboev ---
+--- js/lang/tr.js [key=?] WallRush ---
+--- js/lang/tr.js [key=invite_text] WallRush ---
+--- js/lang/tr.js [key=support] WallRush ---
+--- js/lang/tr.js [key=support_title] WallRush ---
+--- js/lang/tr.js [key=ads_title] WallRush ---
+--- js/lang/tr.js [key=ads_f2_sub] WallRush ---
+--- js/lang/tr.js [key=about_title] WallRush ---
+--- js/lang/tr.js [key=about_body] WallRush ---
+--- js/lang/tr.js [key=rate_title] WallRush ---
+--- js/lang/tr.js [key=install_banner] WallRush ---
+--- js/lang/tr.js [key=legal_agree] WallRush ---
+--- js/lang/tr.js [key=terms_body] WallRush ---
+--- js/lang/tr.js [key=terms_body] wallrush.online ---
+--- js/lang/tr.js [key=terms_body] WallRush ---
+--- js/lang/tr.js [key=terms_body] WallRush ---
+--- js/lang/tr.js [key=terms_body] @Karoboev ---
+--- js/lang/tr.js [key=privacy_body] wallrush.online ---
+--- js/lang/tr.js [key=privacy_body] WallRush ---
+--- js/lang/tr.js [key=privacy_body] WallRush ---
+--- js/lang/tr.js [key=privacy_body] @Karoboev ---
+--- js/lang/tr.js [key=help_body] @Karoboev ---
+--- js/lang/fr.js [key=?] WallRush ---
+--- js/lang/fr.js [key=invite_text] WallRush ---
+--- js/lang/fr.js [key=support] WallRush ---
+--- js/lang/fr.js [key=support_title] WallRush ---
+--- js/lang/fr.js [key=ads_title] WallRush ---
+--- js/lang/fr.js [key=ads_f2_sub] WallRush ---
+--- js/lang/fr.js [key=about_title] WallRush ---
+--- js/lang/fr.js [key=about_body] WallRush ---
+--- js/lang/fr.js [key=rate_title] WallRush ---
+--- js/lang/fr.js [key=install_banner] WallRush ---
+--- js/lang/fr.js [key=legal_agree] WallRush ---
+--- js/lang/fr.js [key=terms_body] WallRush ---
+--- js/lang/fr.js [key=terms_body] wallrush.online ---
+--- js/lang/fr.js [key=terms_body] WallRush ---
+--- js/lang/fr.js [key=terms_body] WallRush ---
+--- js/lang/fr.js [key=terms_body] @Karoboev ---
+--- js/lang/fr.js [key=privacy_body] WallRush ---
+--- js/lang/fr.js [key=privacy_body] wallrush.online ---
+--- js/lang/fr.js [key=privacy_body] WallRush ---
+--- js/lang/fr.js [key=privacy_body] @Karoboev ---
+--- js/lang/fr.js [key=help_body] @Karoboev ---
+--- js/lang/es.js [key=?] WallRush ---
+--- js/lang/es.js [key=invite_text] WallRush ---
+--- js/lang/es.js [key=support] WallRush ---
+--- js/lang/es.js [key=support_title] WallRush ---
+--- js/lang/es.js [key=ads_title] WallRush ---
+--- js/lang/es.js [key=ads_f2_sub] WallRush ---
+--- js/lang/es.js [key=about_title] WallRush ---
+--- js/lang/es.js [key=about_body] WallRush ---
+--- js/lang/es.js [key=rate_title] WallRush ---
+--- js/lang/es.js [key=install_banner] WallRush ---
+--- js/lang/es.js [key=legal_agree] WallRush ---
+--- js/lang/es.js [key=terms_body] WallRush ---
+--- js/lang/es.js [key=terms_body] wallrush.online ---
+--- js/lang/es.js [key=terms_body] WallRush ---
+--- js/lang/es.js [key=terms_body] WallRush ---
+--- js/lang/es.js [key=terms_body] @Karoboev ---
+--- js/lang/es.js [key=privacy_body] WallRush ---
+--- js/lang/es.js [key=privacy_body] wallrush.online ---
+--- js/lang/es.js [key=privacy_body] WallRush ---
+--- js/lang/es.js [key=privacy_body] @Karoboev ---
+--- js/lang/es.js [key=help_body] @Karoboev ---
+
+--- js/lang/ar.js (added by owner later, rebranded on arrival) ---
+Same swaps (WallRush->PathWars, wallrush.online->example.com, @Karoboev->[removed]).

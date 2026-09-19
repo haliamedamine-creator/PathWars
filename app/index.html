@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f4fb">
+
+  <!-- ============ how this page gets found ============
+       Everything a crawler is handed lives in the next forty lines, because
+       everything below is written by JavaScript: 131 elements start empty and
+       are filled once the app boots. A search engine fetching the raw file saw
+       no words at all — which is why the result carried a title and nothing
+       underneath it.
+
+       In English on purpose. There is one indexable page behind six languages,
+       and English reaches the widest search audience; the game itself still
+       opens in whatever language the visitor's browser asks for. -->
+  <title>PathWars — Play Quoridor Online Free, 2 or 4 Players</title>
+  <meta name="description" content="Play PathWars free in your browser — Quoridor online, one on one or four at a table. Race your pawn to the far side of the board, or wall your rival off. Against real people, a friend by room code, or the AI. No download, no signup.">
+  <link rel="canonical" href="index.html">
+
+  <!-- The card a messenger draws when the link is shared. Without these, a
+       link pasted into Telegram or WhatsApp arrived as bare text. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PathWars">
+  <meta property="og:url" content="index.html">
+  <meta property="og:title" content="PathWars — Play Quoridor Online Free">
+  <meta property="og:description" content="Quoridor in your browser, two players or four. Race to the far side of the board, or wall your rival off. Against real players, a friend, or the AI — no signup.">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="PathWars — Play Quoridor Online Free">
+  <meta name="twitter:description" content="Quoridor in your browser, two players or four. Race to the far side of the board, or wall your rival off. No signup.">
+  <meta name="twitter:image" content="icons/icon-512.png">
+
+  <!-- Russian has a page of its own at /ru, written rather than translated:
+       the search words there ("кворидор", "игра со стенками") exist in no
+       English file, and the game is half Russian-speaking. The four languages
+       without a page of their own still point here, which is where the app
+       greets them in their language. -->
+  <link rel="alternate" hreflang="en" href="index.html">
+  <link rel="alternate" hreflang="ru" href="ru.html">
+  <link rel="alternate" hreflang="fa" href="index.html">
+  <link rel="alternate" hreflang="tr" href="index.html">
+  <link rel="alternate" hreflang="fr" href="index.html">
+  <link rel="alternate" hreflang="es" href="index.html">
+  <link rel="alternate" hreflang="x-default" href="index.html">
+
+  <!-- Structured data: what a search engine, and an assistant reading through
+       one, uses to say what this thing actually is.
+
+       No aggregateRating here yet — the server injects one (plus the pill
+       figures above) once the reviews API is serving live numbers. A rating
+       a visitor cannot see is a rating Google is right to ignore, so both
+       stay empty until real ratings exist. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "PathWars",
+    "alternateName": ["Path Wars", "Quoridor", "Кворидор"],
+    "url": "https://pathwars.online/",
+    "image": "https://pathwars.online/icons/icon-512.png",
+    "description": "A free Quoridor-style strategy game played in the browser, for two players or four. Move your pawn to the opposite side of a 9×9 board before your opponent does, using a limited supply of walls to block their path — or sit down at the 11×11 table where four players race for the golden cell in the centre. Play against real people online, against a friend by room code, or against an AI opponent.",
+    "genre": ["Strategy", "Board Game", "Puzzle"],
+    "gamePlatform": ["Web browser", "Android", "iOS"],
+    "playMode": ["MultiPlayer", "SinglePlayer"],
+    "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 4 },
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Any",
+    "inLanguage": ["en", "ru", "fa", "tr", "fr", "es"],
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" }
+  }
+  </script>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='14' y='38' width='72' height='24' rx='12' fill='%23e5304f' transform='rotate(45 50 50)'/><rect x='14' y='38' width='72' height='24' rx='12' fill='%23b3122e' transform='rotate(-45 50 50)'/></svg>">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <!-- Opens the connection to the ad host early. Costs one handshake and no
+       download, and takes that handshake off the wait once Support is tapped. -->
+  <link rel="stylesheet" href="css/styleb3b0.css?v=157">
+  <!-- Are we inside somebody else's page? Every game portal forbids running
+       your own ads inside theirs, and the ad scripts below start the moment
+       the parser reaches them — long before any module could stop one. So the
+       answer has to be known here, in the head, before anything else runs. -->
+  <script>
+    try { window.WR_EMBED = window.self !== window.top; }
+    catch (e) { window.WR_EMBED = true; }   // a cross-origin parent throws, which is itself a yes
+    if (window.WR_EMBED) document.documentElement.className += ' embedded';
+  </script>
+</head>
+<body>
+  <div id="app">
+
+    <!-- Offline, the game opened and looked completely normal: online buttons
+         bright and pressable, leading to a wait that never ended. This says so
+         once, at the top of every screen, and the buttons that cannot work go
+         grey underneath. -->
+    <div id="offline-bar" hidden>📴 <span data-i18n="offline_bar"></span></div>
+
+    <!-- ============ HOME ============ -->
+    <section class="screen active" id="screen-home">
+      <div id="install-banner" hidden>
+        <span class="ib-icon">📲</span>
+        <span class="ib-text" id="install-banner-text" data-i18n="install_banner"></span>
+        <button id="install-banner-go" data-i18n="install_now"></button>
+        <button id="install-banner-close" aria-label="close">✕</button>
+      </div>
+      <header class="home-head">
+        <!-- Language is reachable in one tap from the very first screen: the
+             globe plus the code is readable whatever language you speak. -->
+        <button class="lang-fab" id="btn-lang" aria-label="Language">🌐 EN</button>
+        <div class="logo">
+          <div class="logo-mark"><span></span><span></span><span></span></div>
+          <h1>PathWars</h1>
+        </div>
+        <p class="tagline" data-i18n="tagline">Block. Outplay. Reach the goal.</p>
+        <div class="head-pills">
+          <div class="online-pill"><span class="dot"></span><b id="online-count">0</b>&nbsp;<span data-i18n="online_count"></span></div>
+          <!-- the streak is the reason to come back tomorrow, so it greets you.
+               Tapping it opens everything the flame does — including the offer
+               to get a broken streak back. A banner across the home screen was
+               louder than the thing it was offering. -->
+          <button class="streak-pill" id="streak-pill" hidden>
+            <span class="flame fl-1" id="streak-flame">🔥</span><b id="streak-count">0</b>
+          </button>
+          <!-- The rating of the game, next to the number of people in it. It
+               sits here (rather than only on the reviews screen) because
+               Google prints stars in its results only for a rating the page
+               itself shows. Filled in by the server once the reviews API
+               serves a live aggregate — until then the pill stays hidden. A
+               tap opens the reviews inside the game; the href is for crawlers. -->
+          <!-- ratings: hidden until the reviews API serves a live aggregate.
+               The server fills this pill (and the JSON-LD) with real numbers. -->
+          <a class="rating-pill" id="rating-pill" href="reviews.html" hidden><span class="rp-star">★</span><b>–</b><small></small></a>
+        </div>
+      </header>
+
+      <!-- The task of the day. A strip, not a window: it is a reason to come
+           back, and something that greets a player with a dialog every day
+           stops being a reason and starts being a toll. Hidden entirely until
+           the server says what today's task is. -->
+      <button class="daily" id="daily-card" hidden>
+        <span class="dl-ic" id="daily-ic">🎯</span>
+        <span class="dl-mid">
+          <b id="daily-text"></b>
+          <span class="dl-bar"><i id="daily-fill"></i></span>
+        </span>
+        <span class="dl-right"><b id="daily-num"></b><small id="daily-reward"></small></span>
+      </button>
+
+      <div class="cards">
+        <button class="card card-primary" id="btn-quick">
+          <div class="card-icon">⚡</div>
+          <div class="card-text"><b data-i18n="quick_match">Quick match</b><small data-i18n="quick_match_sub">Find an opponent</small></div>
+          <div class="card-arrow">›</div>
+        </button>
+        <div class="cards-row">
+          <button class="card card-violet" id="btn-online">
+            <div class="card-icon">🌐</div>
+            <div class="card-text"><b data-i18n="play_online">Play online</b><small data-i18n="play_online_sub">Public rooms</small></div>
+          </button>
+          <button class="card card-violet2" id="btn-friend">
+            <div class="card-icon">🤝</div>
+            <div class="card-text"><b data-i18n="play_friend">Play a friend</b><small data-i18n="play_friend_sub">By room code</small></div>
+          </button>
+        </div>
+        <button class="card card-light" id="btn-ai">
+          <div class="card-icon dark">🤖</div>
+          <div class="card-text"><b data-i18n="play_ai">Play the AI</b><small data-i18n="play_ai_sub">Practice</small></div>
+          <div class="card-arrow">›</div>
+        </button>
+        <button class="card card-light" id="btn-how">
+          <div class="card-icon dark">📖</div>
+          <div class="card-text"><b data-i18n="how_title">How to play</b></div>
+          <div class="card-arrow">›</div>
+        </button>
+      </div>
+
+      <!-- support the project / buy advertising — visible, but below the game -->
+      <div class="side-row">
+        <button class="side-btn side-support" id="btn-open-support" data-i18n="support_short"></button>
+        <button class="side-btn side-ads" id="btn-open-ads" data-i18n="ads_short"></button>
+      </div>
+
+      <div class="social-block">
+        <p class="social-label" data-i18n="follow_us"></p>
+        <div class="social-row">
+          <!-- PathWars profiles below. -->
+          <a class="soc soc-ig" href="https://www.instagram.com/Path.Wars" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <!-- outline glyph next to two solid ones: the strokes are heavier
+                 than the real mark so all three read at the same weight -->
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.7" y="2.7" width="18.6" height="18.6" rx="5.6" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="17.5" cy="6.5" r="1.5" fill="#fff"/></svg>
+          </a>
+          <a class="soc soc-fb" href="https://www.facebook.com/PathWars" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" transform="translate(4.5 0) scale(0.046875)" d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
+          </a>
+          <a class="soc soc-tg" href="https://t.me/PathWarsChannel" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M21.7 4.3 18.6 19c-.2 1-.9 1.3-1.7.8l-4.7-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.8 8.8-8c.4-.3-.1-.5-.6-.2L6.5 12.8 1.9 11.4c-1-.3-1-1 .2-1.5l18.3-7c.8-.3 1.6.2 1.3 1.4z"/></svg>
+          </a>
+          <a class="soc soc-yt" href="https://www.youtube.com/@Path_Wars" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M22 8.2a3 3 0 0 0-2.1-2.1C18 5.5 12 5.5 12 5.5s-6 0-7.9.6A3 3 0 0 0 2 8.2 31 31 0 0 0 1.7 12 31 31 0 0 0 2 15.8a3 3 0 0 0 2.1 2.1c1.9.6 7.9.6 7.9.6s6 0 7.9-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 22.3 12 31 31 0 0 0 22 8.2zM10 15V9l5.2 3z"/></svg>
+          </a>
+        </div>
+        <!-- Each of these is also a page of its own now (/rules, /help,
+             /terms, /privacy, and the Russian set behind them), so the href is
+             real and a crawler can follow it. A player never leaves: the click
+             handler opens the same dialog it always did. -->
+        <nav class="legal-links">
+          <a href="rules.html" data-legal="rules" data-i18n="legal_rules">Rules</a><span>·</span>
+          <a href="help.html" data-legal="help" data-i18n="legal_help">Help</a><span>·</span>
+          <a href="terms.html" data-legal="terms" data-i18n="legal_terms">Terms</a><span>·</span>
+          <a href="privacy.html" data-legal="privacy" data-i18n="legal_privacy">Privacy</a>
+        </nav>
+      </div>
+
+      <!-- A real paragraph, in the page from the moment it is served.
+
+           Everything else here is drawn by JavaScript, so a crawler that does
+           not run scripts was given a page with no sentence in it — hence a
+           search result with a title and nothing underneath. This is the one
+           block that is already text when the file arrives, and it is shown to
+           players rather than hidden from them: a paragraph written for robots
+           alone is cloaking, and worth neither the risk nor the trick. -->
+      <section class="about">
+        <h2 data-i18n="about_title">What is PathWars?</h2>
+        <p data-i18n="about_body">PathWars is a free 1v1 strategy game you play straight in the browser — the classic Quoridor, online. Get your pawn to the far side of the 9×9 board before your opponent does, and use your ten walls to make their path longer. A wall cannot be jumped, only walked around, and you may never block someone off completely. Play against real people, against a friend by room code, or against the AI. No download and no signup.</p>
+      </section>
+
+      <!-- removed: home ad slot (see REMOVED_OWNER_STUFF.txt) -->
+    </section>
+
+    <!-- ============ ROOMS (public lobby) ============ -->
+    <section class="screen" id="screen-rooms">
+      <header class="sub-head">
+        <button class="btn-back" data-back>‹</button>
+        <h2 data-i18n="rooms_title"></h2>
+      </header>
+      <div id="rooms-list" class="rooms-list"></div>
+      <button class="btn-big" id="btn-create-room" data-i18n="create_room"></button>
+    </section>
+
+    <!-- ============ FRIEND (private code) ============ -->
+    <section class="screen" id="screen-friend">
+      <header class="sub-head">
+        <button class="btn-back" data-back>‹</button>
+        <h2 data-i18n="friend_title"></h2>
+      </header>
+      <div class="friend-box">
+        <button class="btn-big" id="btn-friend-create" data-i18n="friend_create"></button>
+        <div class="divider">•</div>
+        <p class="hint" data-i18n="friend_enter"></p>
+        <input id="friend-code-input" class="input" maxlength="6" autocomplete="off" autocapitalize="characters" data-i18n-ph="code_placeholder">
+        <button class="btn-big btn-outline" id="btn-friend-join" data-i18n="friend_join"></button>
+      </div>
+    </section>
+
+    <!-- ============ SUPPORT: watch an ad, or donate (overlay) ============ -->
+    <div class="overlay" id="overlay-support" hidden>
+      <div class="modal">
+        <div class="modal-emoji">💛</div>
+        <h2 data-i18n="support_title"></h2>
+        <p class="hint" data-i18n="support_intro"></p>
+
+        <!-- A second card offering to send money directly used to sit here. It
+             is away while the ad networks review this site: they read the page
+             by hand, one of them declines anything that looks like a coin site,
+             and that card had earned nothing across the game's whole life — all
+             risk, no return. Its wording and styles stay in the language files
+             and the stylesheet, ready for the day it comes back. Git remembers
+             the markup. -->
+        <div class="opt-card">
+          <div class="opt-head"><span class="opt-ico">📺</span><b data-i18n="support_watch_title"></b></div>
+          <p class="opt-sub" data-i18n="support_watch_sub"></p>
+          <button class="btn-big" id="support-watch" data-i18n="support_watch"></button>
+        </div>
+
+        <p class="opt-foot" data-i18n="support_where"></p>
+        <div class="modal-buttons">
+          <button class="btn-big btn-outline" id="support-close" data-i18n="legal_close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ADVERTISE WITH US ============ -->
+    <!-- A screen of its own rather than a box floating over a blurred menu.
+         This is the one page a possible advertiser reads end to end, so it
+         gets the whole width: what the audience is, in numbers, before what
+         can be bought. -->
+    <section class="screen" id="screen-ads">
+      <header class="sub-head">
+        <button class="btn-back" data-back>‹</button>
+        <h2 data-i18n="ads_short_plain"></h2>
+      </header>
+
+      <div class="ads-page">
+        <div class="ads-hero">
+          <div class="modal-emoji">📣</div>
+          <h3 data-i18n="ads_title"></h3>
+          <p class="hint" data-i18n="ads_intro"></p>
+        </div>
+
+        <!-- The numbers come first: an advertiser decides on reach, and
+             sending them away to ask for it loses most of them. Deliberately
+             rounded down — every one of them holds on the game's worst day. -->
+        <!-- Yesterday, from the same statistics the owner reads. A finished
+             day with a date on it can be checked tomorrow against the next
+             one; "5000+" cannot be checked against anything. -->
+        <div class="ads-live" id="ads-live" hidden>
+          <p class="ads-day"><span data-i18n="ads_day_label"></span> <b id="ads-date"></b></p>
+          <div class="ads-stats">
+            <div class="ads-stat"><b id="ads-people">—</b><small data-i18n="ads_l_players"></small></div>
+            <div class="ads-stat"><b id="ads-games">—</b><small data-i18n="ads_l_games"></small></div>
+            <div class="ads-stat"><b id="ads-quiet">—</b><small data-i18n="ads_l_quiet"></small></div>
+            <div class="ads-stat"><b id="ads-geo">—</b><small data-i18n="ads_l_countries"></small></div>
+          </div>
+          <div class="ads-flags" id="ads-flags"></div>
+          <p class="hint" data-i18n="ads_auto"></p>
+        </div>
+
+        <!-- Prices, and a tap on one starts the conversation about it -->
+        <h3 class="ads-h" data-i18n="ads_price_title"></h3>
+        <!-- drawn from public/js/packs.js, so the prices here, the ones in
+             the form and the ones the admin page reads cannot drift apart -->
+        <div class="packs" id="ads-packs"></div>
+        <p class="hint" data-i18n="ads_promise"></p>
+
+        <div class="ads-cta">
+          <b data-i18n="ads_cta"></b>
+          <p class="hint" data-i18n="ads_foot"></p>
+          <button class="btn-big" id="ads-leave" data-i18n="ads_leave"></button>
+          <a class="btn-big btn-outline" id="ads-contact" href="#" data-i18n="ads_tg"></a>
+          <a class="btn-big btn-outline ads-mail" href="#">✉️ [removed]</a>
+          <button class="ads-copy" id="ads-email-copy" data-i18n="ads_copy_mail"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LANGUAGE PICKER (overlay) ============ -->
+    <div class="overlay" id="overlay-lang" hidden>
+      <div class="modal">
+        <h2>🌐 <span data-i18n="lang_label"></span></h2>
+        <div class="lang-list" id="lang-list"></div>
+        <div class="modal-buttons">
+          <button class="btn-big btn-outline" id="lang-close" data-i18n="legal_close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ LEGAL / INFO PAGES (overlay) ============ -->
+    <div class="overlay" id="overlay-legal" hidden>
+      <div class="modal legal-modal">
+        <h2 id="legal-title"></h2>
+        <p class="doc-updated" id="legal-updated" hidden></p>
+        <div class="legal-text" id="legal-text"></div>
+        <div class="modal-buttons">
+          <button class="btn-big" id="legal-close" data-i18n="legal_close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CREATE ROOM SETTINGS (overlay) ============ -->
+    <div class="overlay" id="overlay-create" hidden>
+      <div class="modal">
+        <h2 data-i18n="create_room"></h2>
+        <div class="cr-group">
+          <p class="cr-label" data-i18n="mode_label"></p>
+          <div class="cr-opts" id="cr-mode">
+            <button data-val="duel" class="on">⚔️ <span data-i18n="duel_title"></span></button>
+            <button data-val="race">🏁 <span data-i18n="race_title"></span></button>
+            <button data-val="quad">👥 <span data-i18n="quad_title"></span><i class="opt-new" data-i18n="badge_new"></i></button>
+          </div>
+          <p class="hint" id="cr-mode-hint"></p>
+        </div>
+        <div class="cr-group" id="cr-walls-row">
+          <p class="cr-label" data-i18n="walls_label"></p>
+          <div class="cr-opts" id="cr-walls">
+            <button data-val="10" class="on">10 🧱</button>
+            <button data-val="15" hidden>15 🧱</button>
+          </div>
+        </div>
+        <div class="cr-group" id="cr-time-row">
+          <p class="cr-label" data-i18n="time_label"></p>
+          <div class="cr-opts" id="cr-time">
+            <button data-val="0">∞ <span data-i18n="no_time"></span></button>
+            <button data-val="3">3 <span data-i18n="min_short"></span></button>
+            <button data-val="5" class="on">5 <span data-i18n="min_short"></span></button>
+          </div>
+          <p class="hint" data-i18n="no_time_hint"></p>
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-big" id="cr-create" data-i18n="create_room"></button>
+          <button class="btn-big btn-outline" id="cr-cancel" data-i18n="cancel"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ AI DIFFICULTY ============ -->
+    <section class="screen" id="screen-ai">
+      <header class="sub-head">
+        <button class="btn-back" data-back>‹</button>
+        <h2 data-i18n="ai_title"></h2>
+      </header>
+      <div class="cards">
+        <button class="card card-light" id="ai-easy">
+          <div class="card-icon lvl-easy">🙂</div>
+          <div class="card-text"><b data-i18n="ai_easy"></b><small data-i18n="ai_easy_sub"></small></div>
+          <div class="card-arrow">›</div>
+        </button>
+        <button class="card card-light" id="ai-normal">
+          <div class="card-icon lvl-normal">😎</div>
+          <div class="card-text"><b data-i18n="ai_normal"></b><small data-i18n="ai_normal_sub"></small></div>
+          <div class="card-arrow">›</div>
+        </button>
+        <button class="card card-light" id="ai-hard">
+          <div class="card-icon lvl-hard">🔥</div>
+          <div class="card-text"><b data-i18n="ai_hard"></b><small data-i18n="ai_hard_sub"></small></div>
+          <div class="card-arrow">›</div>
+        </button>
+        <button class="card card-light" id="ai-hardcore">
+          <div class="card-icon lvl-hardcore">💀</div>
+          <div class="card-text"><b data-i18n="ai_hardcore"></b><small data-i18n="ai_hardcore_sub"></small></div>
+          <div class="card-arrow">›</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ WAITING ============ -->
+    <section class="screen" id="screen-waiting">
+      <div class="waiting-box">
+        <div class="spinner"></div>
+        <h2 data-i18n="waiting_opponent"></h2>
+        <!-- A table of four says who is already sitting at it. Watching the
+             chairs fill is the difference between waiting and being stood up. -->
+        <div id="waiting-table" class="waiting-table" hidden>
+          <div class="wt-count" id="waiting-count">1/4</div>
+          <div class="wt-list" id="waiting-players"></div>
+          <p class="hint" data-i18n="waiting_quad_hint"></p>
+        </div>
+        <!-- A link is what actually travels: dictating a six-character code
+             loses most invitations before they are sent. -->
+        <div id="waiting-code" class="code-box" hidden>
+          <p class="hint" data-i18n="invite_hint"></p>
+          <button class="btn-big" id="invite-share" data-i18n="invite_share"></button>
+          <p class="invite-or" data-i18n="invite_code_label"></p>
+          <div class="code" id="room-code-value"></div>
+        </div>
+        <button class="btn-big btn-outline" id="btn-cancel-wait" data-i18n="cancel"></button>
+      </div>
+    </section>
+
+    <!-- ============ GAME ============ -->
+    <section class="screen" id="screen-game">
+      <div class="game-head">
+        <div class="g-logo">
+          <div class="logo-mark sm"><span></span><span></span><span></span></div>
+          <b>PathWars</b>
+        </div>
+        <button class="btn-giveup" id="btn-resign">⚑ <span data-i18n="resign"></span></button>
+      </div>
+
+      <div class="vs-row">
+        <div class="p-pill" id="chip-me">
+          <div class="chip-ball"><span class="rank-ic" id="me-rank"></span></div>
+          <div class="pill-info"><b id="me-nick"></b><small><span id="me-walls">10</span> 🧱</small></div>
+          <div class="chip-clock" id="me-clock">5:00</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="p-pill" id="chip-opp">
+          <div class="chip-ball"><span class="rank-ic" id="opp-rank"></span></div>
+          <div class="pill-info"><b id="opp-nick"></b><small><span id="opp-walls">10</span> 🧱</small></div>
+          <div class="chip-clock" id="opp-clock">5:00</div>
+        </div>
+      </div>
+
+      <!-- Four seats do not fit the VS strip, so they get their own row: one
+           small card each, mine always first. -->
+      <div class="quad-row" id="quad-row" hidden></div>
+
+      <div class="board-wrap">
+        <div class="zone-label zone-top" id="zone-top"></div>
+        <div id="board"></div>
+        <div class="zone-label zone-bottom" id="zone-bottom"></div>
+        <div id="emoji-pop" class="emoji-pop" hidden></div>
+      </div>
+
+      <div class="wall-dock" id="wall-dock">
+        <div class="dock-count">🧱 <b id="dock-walls">10</b></div>
+        <button class="dock-handle" id="drag-h" aria-label="horizontal wall"><span class="dh-bar h"></span></button>
+        <button class="dock-handle" id="drag-v" aria-label="vertical wall"><span class="dh-bar v"></span></button>
+      </div>
+
+      <div class="game-hint"><span id="game-hint" data-i18n="gesture_hint"></span></div>
+
+      <div class="game-bottom2">
+        <div class="turn-pill" id="turn-banner"></div>
+        <div class="emoji-bar" id="emoji-bar">
+          <button data-emoji="😂">😂</button>
+          <button data-emoji="🫡">🫡</button>
+          <button data-emoji="🤝">🤝</button>
+          <button data-emoji="😡">😡</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GAME OVER (overlay) ============ -->
+    <div class="overlay" id="overlay-gameover" hidden>
+      <div class="confetti" id="confetti"></div>
+      <div class="modal win-modal">
+        <div class="result-emoji" id="result-emoji">🏆</div>
+        <h1 class="result-title" id="result-title"></h1>
+        <p id="result-reason" class="hint"></p>
+        <div class="result-stats">
+          <div class="rs-side">
+            <div class="rs-ball" id="rs-ball-me"></div>
+            <b id="rs-nick-me"></b><small id="rs-tag-me"></small>
+          </div>
+          <div class="rs-mid">VS</div>
+          <div class="rs-side">
+            <div class="rs-ball" id="rs-ball-opp"></div>
+            <b id="rs-nick-opp"></b><small id="rs-tag-opp"></small>
+          </div>
+        </div>
+        <!-- the whole table, when there were four of them -->
+        <div class="quad-result" id="quad-result" hidden></div>
+        <!-- ladder result: the number people come back for -->
+        <div class="pts-row" id="pts-row" hidden>
+          <span class="pts-delta" id="pts-delta"></span>
+          <span class="pts-total" id="pts-total"></span>
+        </div>
+        <p class="rank-up" id="rank-up" hidden></p>
+        <p class="streak-line" id="streak-line" hidden></p>
+        <p class="hint" id="pts-note" hidden></p>
+        <div class="modal-buttons">
+          <!-- This screen is the most valuable place in the game: it is seen
+               about sixty thousand times a day. The invite here brings around
+               388 new players daily — over a tenth of all growth — while the
+               support ad it replaced earned cents. So the invite gets the spot
+               and support lives on the home screen. -->
+          <button class="btn-big" id="btn-rematch" data-i18n="rematch"></button>
+          <button class="btn-big btn-ghost" id="btn-add-friend" hidden></button>
+          <button class="btn-big btn-ghost" id="btn-invite-friend" data-i18n="invite_short"></button>
+          <button class="btn-big btn-ghost" id="btn-replay" data-i18n="replay"></button>
+          <button class="btn-big btn-outline" id="btn-to-menu" data-i18n="back_menu"></button>
+        </div>
+        <p id="rematch-status" class="hint" hidden></p>
+      </div>
+    </div>
+
+    <!-- ============ DELETE ACCOUNT (overlay) ============ -->
+    <div class="overlay" id="overlay-delete" hidden>
+      <div class="modal">
+        <h2 data-i18n="delete_account"></h2>
+        <p class="hint" data-i18n="delete_warn"></p>
+        <ul class="del-list">
+          <li data-i18n="delete_item_profile"></li>
+          <li data-i18n="delete_item_friends"></li>
+          <li data-i18n="delete_item_review"></li>
+          <li data-i18n="delete_item_login"></li>
+        </ul>
+        <p class="hint" data-i18n="delete_type"></p>
+        <input class="input" id="delete-confirm" autocomplete="off" spellcheck="false">
+        <p class="auth-msg" id="delete-msg" hidden></p>
+        <div class="modal-buttons">
+          <button class="btn-big btn-danger" id="btn-delete-go" data-i18n="delete_go" disabled></button>
+          <button class="btn-big btn-outline" id="btn-delete-cancel" data-i18n="cancel"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SUPPORT AD (video, opens only on tap) ============ -->
+    <!-- The advertising script is not on the page until this opens, so the
+         96% who never tap Support never load a byte of it. -->
+    <div class="overlay ad-overlay" id="overlay-ad" hidden>
+      <div class="ad-box">
+        <div class="ad-head">
+          <span class="ad-label" data-i18n="ad_label"></span>
+          <!-- Hidden by default: the ad brings its own close button, and two on
+               one window is one too many. This one appears only as a way out if
+               the ad is somehow still here long after any ad should be. -->
+          <button class="ad-close" id="ad-close" aria-label="close" hidden>✕</button>
+        </div>
+        <!-- where the network is told to put its player; it does not always
+             oblige, so nothing here depends on the player landing inside -->
+        <div id="ad-video-slot"></div>
+        <p class="ad-note" id="ad-note" data-i18n="ad_loading"></p>
+      </div>
+    </div>
+
+    <!-- ============ STREAK MILESTONE (full-screen celebration) ============ -->
+    <!-- Sits above the result screen: the day someone's week of coming back
+         pays off should not slip by as one more line of text. -->
+    <div class="overlay streak-overlay" id="overlay-streak" hidden>
+      <div class="sparks" id="streak-sparks"></div>
+      <div class="cel">
+        <div class="cel-glow"></div>
+        <span class="flame fl-1 cel-flame" id="cel-flame">🔥</span>
+        <div class="cel-num" id="cel-num">0</div>
+        <h2 class="cel-title" id="cel-title"></h2>
+        <p class="cel-sub" data-i18n="streak_wow"></p>
+        <button class="btn-big" id="cel-close" data-i18n="ok_word"></button>
+      </div>
+    </div>
+
+    <!-- ============ REPLAY CONTROLS (over the game board) ============ -->
+    <div id="replay-bar" hidden>
+      <div class="replay-inner">
+        <button class="rp-btn" id="rp-start" aria-label="start">⏮</button>
+        <button class="rp-btn" id="rp-prev" aria-label="prev">⏴</button>
+        <button class="rp-btn rp-play" id="rp-play" aria-label="play">▶</button>
+        <button class="rp-btn" id="rp-next" aria-label="next">⏵</button>
+        <div class="rp-track"><div class="rp-fill" id="rp-fill"></div></div>
+        <span class="rp-count" id="rp-count">0/0</span>
+        <button class="rp-close" id="rp-close" data-i18n="replay_close"></button>
+      </div>
+    </div>
+
+    <!-- ============ CONFIRM RESIGN ============ -->
+    <div class="overlay" id="overlay-resign" hidden>
+      <div class="modal">
+        <h2 data-i18n="resign_confirm"></h2>
+        <div class="modal-buttons row">
+          <button class="btn-big btn-danger" id="btn-resign-yes" data-i18n="yes"></button>
+          <button class="btn-big btn-outline" id="btn-resign-no" data-i18n="no"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ HOW TO PLAY ============ -->
+    <div class="overlay" id="overlay-how" hidden>
+      <div class="modal">
+        <h2 data-i18n="how_title"></h2>
+        <p class="hint how-text" data-i18n="how_text"></p>
+        <div class="modal-buttons">
+          <button class="btn-big" id="btn-how-close">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ NICKNAME CHANGED ============ -->
+    <div class="overlay" id="overlay-nick-notice" hidden>
+      <div class="modal">
+        <h2 data-i18n="nick_changed_title"></h2>
+        <p class="hint" id="nick-notice-text"></p>
+        <div class="modal-buttons">
+          <button class="btn-big" id="btn-nick-notice-close" data-i18n="ok_word"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ASK ABOUT NOTIFICATIONS ============ -->
+    <!-- Shown once in a player's life, after a third match. The browser's own
+         prompt is fired only for whoever says yes here, because that prompt
+         gets one showing ever and a refusal to it can never be taken back. -->
+    <!-- Offered after a win to a guest who has something real to lose. Their
+         points and streak live in this browser only: clear the data or change
+         phone and they are gone, and until now nothing ever said so. -->
+    <!-- One player's card, opened from every list that shows a name: the
+         friends list, the search, an incoming request, and both leaderboards.
+         Same card, same numbers, fetched fresh each time — a list that happens
+         to carry today's points must not show them as a lifetime total. -->
+    <div class="overlay" id="overlay-player" hidden>
+      <div class="modal pl-modal">
+        <button class="pl-close" id="pl-close" aria-label="close">✕</button>
+        <div class="pl-head">
+          <!-- the piece they play with, turning on the spot -->
+          <div class="pl-ball"><span class="pawn blue"></span></div>
+          <div class="pl-who">
+            <b id="pl-nick"></b>
+            <div class="pl-tags">
+              <span class="pl-rank" id="pl-rank"></span>
+              <span class="pl-place" id="pl-place"></span>
+            </div>
+            <div class="pl-flame" id="pl-flame" hidden></div>
+          </div>
+        </div>
+        <div class="pl-stats" id="pl-stats">
+          <div><b id="pl-games">—</b><small data-i18n="pl_games"></small></div>
+          <div><b id="pl-wins">—</b><small data-i18n="pl_wins"></small></div>
+          <div><b id="pl-losses">—</b><small data-i18n="pl_losses"></small></div>
+          <div><b id="pl-rate">—</b><small data-i18n="pl_rate"></small></div>
+        </div>
+        <p class="hint" id="pl-note" hidden></p>
+        <div class="modal-buttons">
+          <button class="btn-big" id="pl-act" hidden></button>
+          <button class="btn-big btn-outline" id="pl-call" hidden></button>
+        </div>
+        <p class="hint" id="pl-loading" data-i18n="pl_loading"></p>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay-call" hidden>
+      <div class="modal">
+        <div class="modal-emoji">🎮</div>
+        <h2><span id="call-from"></span></h2>
+        <p class="hint" data-i18n="call_body"></p>
+        <p class="hint"><b id="call-settings"></b></p>
+        <div class="modal-buttons">
+          <button class="btn-big" id="btn-call-yes" data-i18n="call_yes"></button>
+          <button class="btn-big btn-outline" id="btn-call-no" data-i18n="call_no"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay-save" hidden>
+      <div class="modal">
+        <div class="modal-emoji">💾</div>
+        <h2 data-i18n="save_ask_title"></h2>
+        <p class="hint"><b id="save-ask-what"></b></p>
+        <p class="hint" data-i18n="save_ask_body"></p>
+        <div class="modal-buttons">
+          <button class="btn-big" id="btn-save-yes" data-i18n="save_ask_yes"></button>
+          <button class="btn-big btn-outline" id="btn-save-no" data-i18n="save_ask_no"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- The one question a player can answer in a single tap. Stars only is a
+         complete answer: the words are optional, and most people will not
+         write any. One to three stars turn into a private note to us; four and
+         five are offered a place on the public page. -->
+    <!-- Shown once, on the match that finishes the task. The points are
+         already in the account by the time this opens. -->
+    <div class="overlay" id="overlay-daily" hidden>
+      <div class="modal">
+        <div class="modal-emoji">🎯</div>
+        <h2 data-i18n="daily_done_title"></h2>
+        <p class="hint" id="daily-done-what"></p>
+        <p class="hint"><b id="daily-done-reward"></b></p>
+        <div class="modal-buttons">
+          <button class="btn-big" id="btn-daily-ok" data-i18n="nice"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaving a way to be reached. No payment: there is nothing here to
+         take money with yet, and a dead pay button loses the enquiry too.
+
+         Everything that can be a list is a list. The first three enquiries
+         arrived as "Wathsapp", a bare phone number with no country, and one
+         usable email — a box you can type anything into gets anything typed
+         into it. Nothing is preselected for the contact: choosing is the
+         point, and a default would be answered by accident. -->
+    <div class="overlay" id="overlay-adreq" hidden>
+      <div class="modal">
+        <div class="modal-emoji">📣</div>
+        <h2 data-i18n="ads_req_title"></h2>
+
+        <p class="cr-label" data-i18n="ads_req_pack"></p>
+        <select class="input select" id="adreq-pack"></select>
+
+        <p class="cr-label" data-i18n="ads_req_where"></p>
+        <select class="input select" id="adreq-platform">
+          <option value="" data-i18n="ads_req_choose"></option>
+          <option value="telegram">Telegram</option>
+          <option value="instagram">Instagram</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="email" data-i18n="ads_req_email"></option>
+        </select>
+        <input class="input" id="adreq-contact" maxlength="200" autocomplete="off" disabled>
+        <p class="hint" id="adreq-hint"></p>
+
+        <p class="cr-label" data-i18n="ads_req_what"></p>
+        <input class="input" id="adreq-site" maxlength="200" autocomplete="off" data-i18n-ph="ads_req_what_ph">
+
+        <p class="cr-label" data-i18n="ads_req_desc"></p>
+        <textarea class="input rate-text" id="adreq-about" rows="2" maxlength="500" data-i18n-ph="ads_req_desc_ph"></textarea>
+
+        <p class="cr-label" data-i18n="ads_req_audience"></p>
+        <select class="input select" id="adreq-audience">
+          <option value="world" data-i18n="ads_req_world"></option>
+          <option value="asia" data-i18n="ads_geo_asia"></option>
+          <option value="europe" data-i18n="ads_geo_europe"></option>
+          <option value="africa" data-i18n="ads_geo_africa"></option>
+          <option value="mideast" data-i18n="ads_geo_mideast"></option>
+          <option value="latam" data-i18n="ads_geo_latam"></option>
+          <option value="namerica" data-i18n="ads_geo_namerica"></option>
+          <option value="cis" data-i18n="ads_geo_cis"></option>
+          <option value="own" data-i18n="ads_req_own_geo"></option>
+        </select>
+        <input class="input" id="adreq-geo" maxlength="120" autocomplete="off" data-i18n-ph="ads_req_geo_ph" hidden>
+
+        <p class="hint" data-i18n="ads_req_promise"></p>
+        <div class="modal-buttons">
+          <button class="btn-big" id="adreq-send" data-i18n="ads_req_send"></button>
+          <button class="btn-big btn-outline" id="adreq-cancel" data-i18n="cancel"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay-rate" hidden>
+      <div class="modal">
+        <div class="modal-emoji" id="rate-emoji">⭐</div>
+        <h2 id="rate-title" data-i18n="rate_title"></h2>
+        <p class="hint" id="rate-sub" data-i18n="rate_sub"></p>
+        <div class="stars-pick" id="rate-stars">
+          <button type="button" data-star="1">★</button>
+          <button type="button" data-star="2">★</button>
+          <button type="button" data-star="3">★</button>
+          <button type="button" data-star="4">★</button>
+          <button type="button" data-star="5">★</button>
+        </div>
+        <textarea class="input rate-text" id="rate-text" rows="3" maxlength="400" hidden></textarea>
+        <div class="modal-buttons">
+          <button class="btn-big" id="btn-rate-send" hidden></button>
+          <button class="btn-big btn-outline" id="btn-rate-close" data-i18n="rate_later"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay-push" hidden>
+      <div class="modal">
+        <div class="modal-emoji">🔔</div>
+        <h2 data-i18n="push_ask_title"></h2>
+        <p class="hint"><b id="push-ask-days"></b> <span data-i18n="push_ask_streak"></span></p>
+        <p class="hint" data-i18n="push_ask_body"></p>
+        <div class="modal-buttons">
+          <button class="btn-big" id="btn-push-yes" data-i18n="push_ask_yes"></button>
+          <button class="btn-big btn-outline" id="btn-push-no" data-i18n="push_ask_no"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ THE FLAME, EXPLAINED (opened by tapping it) ============ -->
+    <!-- One window for everything the flame does: where the streak stands, the
+         way back if it broke, how many free restores are left this month, and
+         what the fire turns into as the days add up. It used to open only once
+         the streak was already lost, which left the rules invisible to
+         everyone still keeping one. -->
+    <div class="overlay" id="overlay-streak-info" hidden>
+      <div class="modal">
+        <span class="flame fl-1 cel-flame" id="info-flame">🔥</span>
+        <h2 id="info-title"></h2>
+        <p class="hint" id="info-sub"></p>
+
+        <button class="btn-big btn-restore" id="btn-restore-home" hidden></button>
+
+        <div class="info-row">
+          <span data-i18n="streak_free_label"></span><b id="info-free">1/1</b>
+        </div>
+        <p class="hint" data-i18n="streak_free_note"></p>
+
+        <h3 class="info-h" data-i18n="streak_info_flames"></h3>
+        <ul class="flame-list" id="info-flames"></ul>
+        <p class="hint" data-i18n="streak_info_unlit"></p>
+
+        <h3 class="info-h" data-i18n="streak_info_days"></h3>
+        <p class="hint" data-i18n="streak_info_days_sub"></p>
+        <p class="milestones" id="info-milestones"></p>
+
+        <div class="modal-buttons">
+          <button class="btn-big btn-outline" id="btn-info-close" data-i18n="close_word"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ LEADERBOARD ============ -->
+    <section class="screen" id="screen-leaderboard">
+      <header class="sub-head center">
+        <h2>🏆 <span data-i18n="leaderboard_title"></span></h2>
+        <p class="hint" id="lb-sub" data-i18n="leaderboard_sub"></p>
+      </header>
+      <!-- Two boards, one screen. The all-time one rewards having been here
+           longest and is out of reach for anyone who arrived this week; the
+           day's one is back to nothing every midnight, so a good evening is
+           enough to be on it. Today is the one shown first, for that reason. -->
+      <div class="lb-tabs" id="lb-tabs">
+        <button data-scope="today" class="on" data-i18n="lb_today"></button>
+        <button data-scope="all" data-i18n="lb_all"></button>
+      </div>
+      <div id="lb-list" class="lb-list"></div>
+
+      <!-- removed: leaderboard ad slot (see REMOVED_OWNER_STUFF.txt) -->
+    </section>
+
+    <!-- ============ FRIENDS ============ -->
+    <!-- It used to be a block at the very bottom of the profile, under every
+         setting, and a player with ninety matches wrote that the game had no
+         friends list at all. Its own screen, one tap from the profile. -->
+    <section class="screen" id="screen-friends">
+      <header class="sub-head">
+        <button class="btn-back" id="fr-back">‹</button>
+        <h2 data-i18n="friends_title"></h2>
+      </header>
+
+      <div class="fr-find" id="fr-find">
+        <p class="hint" data-i18n="friends_find_hint"></p>
+        <div class="fr-find-row">
+          <input class="input" id="fr-search" maxlength="16" autocomplete="off" data-i18n-ph="friends_find_ph">
+          <button class="btn-mini" id="fr-search-go">🔍</button>
+        </div>
+        <div id="fr-found"></div>
+      </div>
+
+      <!-- people who asked to be added -->
+      <div id="fr-requests-box" hidden>
+        <p class="fr-sect"><span data-i18n="friends_requests"></span> <b id="fr-req-count"></b></p>
+        <div id="fr-requests"></div>
+      </div>
+
+      <p class="fr-sect"><span data-i18n="friends_title"></span> <b id="fr-count"></b></p>
+      <div id="fr-list"></div>
+      <p class="hint" id="fr-empty" data-i18n="friends_empty" hidden></p>
+      <p class="hint" id="fr-guest" data-i18n="friends_guest" hidden></p>
+    </section>
+
+    <!-- ============ REVIEWS ============ -->
+    <!-- Reachable at any time, not only in the moment after a win. The same
+         page lives at /reviews for anyone who has not opened the game yet. -->
+    <section class="screen" id="screen-reviews">
+      <header class="sub-head">
+        <button class="btn-back" id="rv-back">‹</button>
+        <h2>⭐ <span data-i18n="reviews_title"></span></h2>
+      </header>
+      <div class="rv-score" id="rv-score" hidden>
+        <div class="rv-big">
+          <b id="rv-avg">—</b>
+          <div class="rv-stars" id="rv-avg-stars"></div>
+          <small id="rv-count"></small>
+        </div>
+        <div class="rv-bars" id="rv-bars"></div>
+      </div>
+      <button class="btn-big" id="btn-leave-review" data-i18n="rate_leave"></button>
+      <p class="hint" id="rv-gate" hidden></p>
+      <div class="rv-tabs" id="rv-tabs" hidden>
+        <button data-f="new" class="on" data-i18n="rv_new"></button>
+        <button data-f="text" data-i18n="rv_text"></button>
+        <button data-f="good" data-i18n="rv_good"></button>
+        <button data-f="bad" data-i18n="rv_bad"></button>
+        <button data-f="liked" data-i18n="rv_liked"></button>
+        <button data-f="old" data-i18n="rv_old"></button>
+      </div>
+      <div id="rv-list" class="rv-list"></div>
+      <p class="hint" id="rv-empty" data-i18n="reviews_empty" hidden></p>
+      <!-- the same reviews live at a real address, which is what a search
+           engine can read and what a link to the game can point at -->
+      <p class="hint"><a href="reviews.html" target="_blank" rel="noopener" data-i18n="reviews_page_link"></a></p>
+    </section>
+
+    <!-- ============ PROFILE ============ -->
+    <section class="screen" id="screen-profile">
+      <header class="sub-head center">
+        <h2 data-i18n="profile_title"></h2>
+      </header>
+
+      <div class="profile-card">
+        <div class="avatar" id="profile-avatar">U</div>
+        <h3 id="profile-nick">User0000</h3>
+        <div class="rank-card">
+          <div class="rank-badge" id="rank-badge">🟢</div>
+          <div class="rank-meta">
+            <b id="rank-name"></b>
+            <small id="rank-points"></small>
+            <div class="rank-bar" id="rank-bar"><i id="rank-fill"></i></div>
+            <small class="rank-next" id="rank-next"></small>
+          </div>
+        </div>
+        <div class="streak-card" id="streak-card">
+          <!-- tappable here too: the same window opens from the home screen -->
+          <button class="flame-btn" id="streak-flame-btn" aria-label="🔥">
+            <span class="flame fl-1" id="streak-flame-big">🔥</span>
+          </button>
+          <div class="streak-meta">
+            <b id="streak-days"></b>
+            <small id="streak-sub"></small>
+          </div>
+        </div>
+        <!-- Shown only when a streak was lost recently: one ad buys it back.
+             The player chooses to watch, so nothing is taken from anyone. -->
+        <button class="btn-big btn-restore" id="btn-restore-streak" hidden></button>
+        <p class="veteran-badge" id="veteran-badge" data-i18n="veteran" hidden></p>
+        <div class="stats-row" id="profile-stats">
+          <div class="stat"><b id="stat-games">0</b><small data-i18n="stats_games"></small></div>
+          <div class="stat"><b id="stat-wins">0</b><small data-i18n="stats_wins"></small></div>
+          <div class="stat"><b id="stat-losses">0</b><small data-i18n="stats_losses"></small></div>
+          <div class="stat"><b id="stat-rate">—</b><small data-i18n="stats_rate"></small></div>
+        </div>
+        <p class="hint" data-i18n="stats_online_note"></p>
+        <p class="hint" id="guest-hint" data-i18n="guest_hint"></p>
+      </div>
+
+      <!-- guest: auth buttons -->
+      <div id="auth-buttons" class="auth-box">
+        <button class="btn-big" id="btn-show-login" data-i18n="login"></button>
+        <button class="btn-big btn-outline" id="btn-show-register" data-i18n="register"></button>
+      </div>
+
+      <!-- auth form -->
+      <div id="auth-form" class="auth-box" hidden>
+        <input class="input" id="auth-email" type="email" data-i18n-ph="email" autocomplete="email">
+        <input class="input" id="auth-password" type="password" data-i18n-ph="password" autocomplete="current-password">
+        <input class="input" id="auth-nick" data-i18n-ph="nick_label" maxlength="16" hidden>
+        <button class="btn-big" id="btn-auth-submit"></button>
+        <button class="btn-link" id="btn-auth-toggle"></button>
+        <button class="btn-link" id="btn-forgot" data-i18n="forgot"></button>
+        <button class="btn-link" id="btn-auth-cancel" data-i18n="cancel"></button>
+        <p class="auth-msg" id="auth-msg" hidden></p>
+      </div>
+
+      <div id="logged-box" class="auth-box" hidden>
+        <button class="btn-big btn-outline" id="btn-logout" data-i18n="logout"></button>
+        <!-- The privacy policy says an account can be deleted. It has to be
+             possible from inside the game, or that is not a right, it is a
+             sentence in a document. -->
+        <button class="btn-link danger-link" id="btn-delete-account" data-i18n="delete_account"></button>
+      </div>
+
+      <div class="settings-box">
+        <div class="setting-row">
+          <span data-i18n="lang_label"></span>
+          <button class="lang-current" id="lang-current">🌐 English</button>
+        </div>
+        <div class="setting-row">
+          <span data-i18n="vibration"></span>
+          <label class="toggle"><input type="checkbox" id="vibro-toggle" checked><span></span></label>
+        </div>
+        <div class="setting-row">
+          <span data-i18n="sound"></span>
+          <label class="toggle"><input type="checkbox" id="sound-toggle" checked><span></span></label>
+        </div>
+        <div class="setting-row" id="install-row" hidden>
+          <span data-i18n="install_app"></span>
+          <button class="btn-mini" id="btn-install">📲</button>
+        </div>
+        <div class="setting-row">
+          <span data-i18n="theme_label"></span>
+          <label class="toggle"><input type="checkbox" id="theme-toggle"><span></span></label>
+        </div>
+        <!-- The game used to offer notifications exactly once, after a third
+             match, and never again — so anyone who tapped past that prompt had
+             no way back. Hidden where the browser has already refused. -->
+        <div class="setting-row">
+          <span data-i18n="friends_title"></span>
+          <button class="btn-mini" id="btn-open-friends">🤝</button>
+        </div>
+        <div class="setting-row">
+          <span data-i18n="reviews_title"></span>
+          <button class="btn-mini" id="btn-open-reviews">⭐</button>
+        </div>
+        <div class="setting-row" id="push-row" hidden>
+          <span data-i18n="push_label"></span>
+          <label class="toggle"><input type="checkbox" id="push-toggle"><span></span></label>
+        </div>
+      </div>
+
+      <!-- The list itself lives on its own screen now -->
+
+      <!-- removed: profile ad slot (see REMOVED_OWNER_STUFF.txt) -->
+    </section>
+
+    <!-- ============ BOTTOM NAV ============ -->
+    <nav id="bottom-nav">
+      <button class="nav-btn active" data-screen="screen-home">
+        <span class="nav-ico">🏠</span><span data-i18n="nav_home"></span>
+      </button>
+      <button class="nav-btn" data-screen="screen-leaderboard">
+        <span class="nav-ico">🏆</span><span data-i18n="nav_leaderboard"></span>
+      </button>
+      <button class="nav-btn" data-screen="screen-profile">
+        <span class="nav-ico">👤</span><span data-i18n="nav_profile"></span>
+      </button>
+    </nav>
+
+    <div id="toast" hidden></div>
+  </div>
+
+  <script src="vendor/supabaseb3b0.js?v=157" defer></script>
+  <script type="module" src="js/appb3b0.js?v=157"></script>
+</body>
+
+</html>
