@@ -237,6 +237,212 @@ export async function incomingRequests(id) {
 }
 
 await pool.query(`
+CREATE TABLE IF NOT EXISTS streaks (
+  owner TEXT PRIMARY KEY,
+  days INTEGER NOT NULL DEFAULT 0,
+  best INTEGER NOT NULL DEFAULT 0,
+  last_day TEXT NOT NULL DEFAULT '',
+  lost_days INTEGER NOT NULL DEFAULT 0,
+  lost_at TEXT NOT NULL DEFAULT '',
+  freeze_month TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS daily_progress (
+  owner TEXT NOT NULL, day TEXT NOT NULL,
+  games INTEGER NOT NULL DEFAULT 0, wins INTEGER NOT NULL DEFAULT 0,
+  walls INTEGER NOT NULL DEFAULT 0, quad_games INTEGER NOT NULL DEFAULT 0,
+  thrifty INTEGER NOT NULL DEFAULT 0, strong INTEGER NOT NULL DEFAULT 0,
+  done INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (owner, day)
+);
+CREATE TABLE IF NOT EXISTS push_subs (
+  endpoint TEXT PRIMARY KEY,
+  device TEXT NOT NULL DEFAULT '',
+  p256dh TEXT NOT NULL DEFAULT '',
+  auth TEXT NOT NULL DEFAULT '',
+  lang TEXT NOT NULL DEFAULT 'en',
+  created BIGINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS push_log (
+  owner TEXT NOT NULL, day TEXT NOT NULL, kind TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY (owner, day, kind)
+);
+`);
+
+export function yd() {
+  return new Date(Date.now() + 3 * 3600 * 1000 - 24 * 3600 * 1000).toISOString().slice(0, 10);
+}
+export function ym() {
+  return mskDay().slice(0, 7);
+}
+async function streakRow(owner) {
+  const r = await pool.query('SELECT * FROM streaks WHERE owner = $1', [owner]);
+  return r.rows[0] || { owner, days: 0, best: 0, last_day: '', lost_days: 0, lost_at: '', freeze_month: '' };
+}
+export async function streakBreakCheck(owner) {
+  const r = await streakRow(owner);
+  const td = mskDay(), y = yd();
+  if (r.last_day && r.last_day !== td && r.last_day !== y) {
+    if (Number(r.days) >= 3 && !Number(r.lost_days)) {
+      await pool.query(`INSERT INTO streaks (owner, days, best, last_day, lost_days, lost_at, freeze_month)
+        VALUES ($1, 0, $2, '', $3, $4, $5)
+        ON CONFLICT(owner) DO UPDATE SET days = 0, last_day = '', lost_days = excluded.lost_days, lost_at = excluded.lost_at`,
+        [owner, r.best, r.days, td, r.freeze_month]);
+      return { ...r, days: 0, last_day: '', lost_days: r.days, lost_at: td };
+    }
+    if (Number(r.days)) {
+      await pool.query('UPDATE streaks SET days = 0, last_day = $1 WHERE owner = $2', ['', owner]);
+      return { ...r, days: 0, last_day: '' };
+    }
+  }
+  return r;
+}
+export async function advanceStreak(owner) {
+  let r = await streakBreakCheck(owner);
+  const td = mskDay(), y = yd();
+  if (r.last_day === td) return { days: Number(r.days), best: Number(r.best), advanced: false };
+  let days, advanced = true;
+  if (r.last_day === y && Number(r.days) > 0) days = Number(r.days) + 1;
+  else {
+    if (Number(r.days) >= 3 && !Number(r.lost_days)) {
+      await pool.query(`INSERT INTO streaks (owner, lost_days, lost_at)
+        VALUES ($1, $2, $3) ON CONFLICT(owner) DO UPDATE SET lost_days = excluded.lost_days, lost_at = excluded.lost_at`,
+        [owner, r.days, td]);
+      r = { ...r, lost_days: r.days, lost_at: td };
+    }
+    days = 1;
+  }
+  const best = Math.max(Number(r.best), days);
+  await pool.query(`INSERT INTO streaks (owner, days, best, last_day, freeze_month)
+    VALUES ($1, $2, $3, $4, $5) ON CONFLICT(owner) DO UPDATE SET days = excluded.days,
+    best = excluded.best, last_day = excluded.last_day`,
+    [owner, days, best, td, r.freeze_month]);
+  return { days, best, advanced };
+}
+export async function streakView(owner) {
+  const r = await streakBreakCheck(owner);
+  const td = mskDay(), y = yd();
+  const days = Number(r.days), lost = Number(r.lost_days);
+  const state = !days && !lost ? 'none'
+    : r.last_day === td ? 'today'
+    : r.last_day === y ? 'risk'
+    : lost ? 'lost' : 'none';
+  return {
+    streak: days, streakBest: Number(r.best), streakToday: r.last_day === td,
+    streakState: state, streakLost: lost,
+    streakFree: (r.freeze_month || '') !== ym(),
+  };
+}
+export async function restoreStreak(owner) {
+  const r = await streakRow(owner);
+  if (!Number(r.lost_days)) return { ok: false };
+  const td = mskDay(), month = ym();
+  const days = Number(r.lost_days);
+  const best = Math.max(Number(r.best), days);
+  await pool.query(`INSERT INTO streaks (owner, days, best, last_day, lost_days, lost_at, freeze_month)
+    VALUES ($1, $2, $3, $4, 0, '', $5) ON CONFLICT(owner) DO UPDATE SET days = excluded.days,
+    best = excluded.best, last_day = excluded.last_day, lost_days = 0, lost_at = '',
+    freeze_month = excluded.freeze_month`,
+    [owner, days, best, td, month]);
+  return { ok: true, streak: days };
+}
+const DAY_TASKS = [
+  { task: 'play4', target: 4, reward: 10 },
+  { task: 'win2', target: 2, reward: 15 },
+  { task: 'walls12', target: 12, reward: 10 },
+  { task: 'win_human', target: 2, reward: 15 },
+  { task: 'win_thrifty', target: 1, reward: 20 },
+  { task: 'win3', target: 3, reward: 25 },
+  { task: 'win_strong', target: 1, reward: 30 },
+  { task: 'quad_play', target: 2, reward: 15 },
+];
+export function todayTask() {
+  const start = Date.UTC(Number(mskDay().slice(0, 4)), 0, 0);
+  const doy = Math.floor((Date.now() + 3 * 3600 * 1000 - start) / 86400000);
+  return DAY_TASKS[((doy % DAY_TASKS.length) + DAY_TASKS.length) % DAY_TASKS.length];
+}
+async function dailyRowPg(owner) {
+  const day = mskDay();
+  await pool.query('INSERT INTO daily_progress (owner, day) VALUES ($1, $2) ON CONFLICT DO NOTHING', [owner, day]);
+  const r = await pool.query('SELECT * FROM daily_progress WHERE owner = $1 AND day = $2', [owner, day]);
+  return r.rows[0];
+}
+function taskProgress(task, row) {
+  const n = (k) => Number(row[k]);
+  switch (task) {
+    case 'play4': return n('games');
+    case 'win2': case 'win3': case 'win_human': return n('wins');
+    case 'walls12': return n('walls');
+    case 'win_thrifty': return n('thrifty');
+    case 'win_strong': return n('strong');
+    case 'quad_play': return n('quad_games');
+    default: return n('games');
+  }
+}
+export async function noteDailyGame(owner, ev) {
+  const t = todayTask();
+  const day = mskDay();
+  await dailyRowPg(owner);
+  await pool.query(`UPDATE daily_progress SET games = games + 1, wins = wins + $1,
+    walls = walls + $2, quad_games = quad_games + $3, thrifty = thrifty + $4,
+    strong = strong + $5 WHERE owner = $6 AND day = $7`,
+    [ev.won ? 1 : 0, ev.walls, ev.quad ? 1 : 0, ev.thrifty ? 1 : 0, ev.strong ? 1 : 0, owner, day]);
+  const row = await dailyRowPg(owner);
+  const progress = taskProgress(t.task, row);
+  const wasDone = Boolean(row.done);
+  const justDone = !wasDone && progress >= t.target;
+  if (justDone) await pool.query('UPDATE daily_progress SET done = 1 WHERE owner = $1 AND day = $2', [owner, day]);
+  return { progress, done: wasDone || justDone, justDone };
+}
+export async function dailyState(owner) {
+  const t = todayTask();
+  const row = await dailyRowPg(owner);
+  return { task: t.task, target: t.target, progress: taskProgress(t.task, row), done: Boolean(row.done), reward: t.reward };
+}
+export async function grantPoints(owner, n) {
+  if (owner.startsWith('u:')) {
+    await pool.query('UPDATE users SET points = points + $1 WHERE id = $2', [n, owner.slice(2)]);
+    const u = await getUserById(owner.slice(2));
+    return u ? u.points : 0;
+  }
+  await pool.query('UPDATE devices SET points = points + $1 WHERE id = $2', [n, owner]);
+  const d = await getDevice(owner);
+  return d ? d.points : 0;
+}
+export async function savePushSub({ endpoint, device, p256dh, auth, lang }) {
+  await pool.query(`INSERT INTO push_subs (endpoint, device, p256dh, auth, lang, created)
+    VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT(endpoint) DO UPDATE SET device = excluded.device,
+    p256dh = excluded.p256dh, auth = excluded.auth, lang = excluded.lang`,
+    [endpoint, device, p256dh, auth, lang, Date.now()]);
+}
+export async function removePushSub(endpoint) {
+  await pool.query('DELETE FROM push_subs WHERE endpoint = $1', [endpoint]);
+}
+export async function subsForDevices(devices) {
+  if (!devices.length) return [];
+  const r = await pool.query('SELECT endpoint, p256dh, auth FROM push_subs WHERE device = ANY($1)', [devices]);
+  return r.rows;
+}
+export async function devicesOfOwner(owner) {
+  if (owner.startsWith('u:')) {
+    const r = await pool.query('SELECT id FROM devices WHERE user_id = $1', [owner.slice(2)]);
+    return r.rows.map((x) => x.id);
+  }
+  const d = await getDevice(owner);
+  return d ? [owner] : [];
+}
+export async function streakRiskOwners() {
+  const r = await pool.query('SELECT owner FROM streaks WHERE days > 0 AND last_day = $1', [yd()]);
+  return r.rows.map((x) => x.owner);
+}
+export async function pushLogged(owner, day, kind) {
+  const r = await pool.query('SELECT 1 FROM push_log WHERE owner = $1 AND day = $2 AND kind = $3', [owner, day, kind]);
+  return Boolean(r.rows[0]);
+}
+export async function logPush(owner, day, kind) {
+  await pool.query('INSERT INTO push_log (owner, day, kind) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [owner, day, kind]);
+}
+
+await pool.query(`
 CREATE TABLE IF NOT EXISTS visits (
   id SERIAL PRIMARY KEY,
   device TEXT NOT NULL DEFAULT '',

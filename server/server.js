@@ -13,6 +13,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
+import webpush from 'web-push';
 import { initialState, applyMove, eliminate, nextAlive, aliveCount } from '../app/js/engine.js';
 import { pointsDelta, quadPointsDelta } from '../app/js/ranks.js';
 import { checkNick } from '../app/js/nick.js';
@@ -24,6 +25,10 @@ import {
   deviceByNick, latestDevice,
   upsertReview, reviewStats, reviewRows, toggleLike,
   logVisit,
+  yd, streakBreakCheck, advanceStreak, streakView, restoreStreak,
+  todayTask, noteDailyGame, dailyState, grantPoints,
+  savePushSub, removePushSub, subsForDevices, devicesOfOwner,
+  streakRiskOwners, pushLogged, logPush,
   addFriendship, removeFriendship, friendIds, addRequest, answerRequest, incomingRequests,
 } from './store.js';
 
@@ -31,6 +36,12 @@ const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || '';
 const SUPABASE_SERVICE = process.env.SUPABASE_SERVICE_KEY || '';
 const AUTH_ON = Boolean(SUPABASE_URL && SUPABASE_ANON);
+
+const VAPID_PUBLIC = process.env.VAPID_PUBLIC || '';
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE || '';
+if (VAPID_PUBLIC && VAPID_PRIVATE) {
+  webpush.setVapidDetails('mailto:ads@pathwars.online', VAPID_PUBLIC, VAPID_PRIVATE);
+}
 
 /* ---- Supabase Auth (publishable key validates, service key administers) ---- */
 const tokenCache = new Map(); // token -> { user, exp }
@@ -115,7 +126,8 @@ async function serveStatic(req, res) {
   if (url.pathname === '/api/config') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(AUTH_ON
-      ? { auth: true, supabaseUrl: SUPABASE_URL, supabaseAnonKey: SUPABASE_ANON }
+      ? { auth: true, supabaseUrl: SUPABASE_URL, supabaseAnonKey: SUPABASE_ANON,
+          ...(VAPID_PUBLIC ? { vapid: VAPID_PUBLIC } : {}) }
       : { auth: false }));
     return;
   }
@@ -376,6 +388,39 @@ async function handleApi(req, res) {
     return json(res, 200, r);
   }
 
+  if (p === '/api/streak/restore' && req.method === 'POST') {
+    const b = await readBody(req);
+    const u = await supaUser(bearer(req));
+    const device = String(b.device || '');
+    const owner = u ? 'u:' + u.id : (await ownerOf(device)).id;
+    if (!u && !device) return json(res, 400, { error: 'device' });
+    const r = await restoreStreak(owner);
+    if (!r.ok) return json(res, 200, { ok: false });
+    return json(res, 200, { ok: true, streak: r.streak });
+  }
+
+  if (p === '/api/push/subscribe' && req.method === 'POST') {
+    const b = await readBody(req);
+    const sub = b.sub || {};
+    if (!sub.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) {
+      return json(res, 400, { error: 'sub' });
+    }
+    await savePushSub({
+      endpoint: String(sub.endpoint).slice(0, 500),
+      device: String(b.device || '').slice(0, 64),
+      p256dh: String(sub.keys.p256dh).slice(0, 200),
+      auth: String(sub.keys.auth).slice(0, 100),
+      lang: String(b.lang || 'en').slice(0, 8),
+    });
+    return json(res, 200, { ok: true });
+  }
+
+  if (p === '/api/push/unsubscribe' && req.method === 'POST') {
+    const b = await readBody(req);
+    if (b.endpoint) await removePushSub(String(b.endpoint));
+    return json(res, 200, { ok: true });
+  }
+
   return json(res, 404, { error: 'not found' });
 }
 
@@ -389,6 +434,40 @@ const server = http.createServer((req, res) => {
     } catch { try { res.writeHead(500); res.end(); } catch {} }
   })();
 });
+
+/* ---- streaks, daily tasks, push: per-owner helpers ---- */
+async function ownerPoints(owner) {
+  if (owner.startsWith('u:')) return (await getUserById(owner.slice(2)))?.points || 0;
+  return (await getDevice(owner))?.points || 0;
+}
+async function dailyMsg(owner, extra = {}) {
+  const d = await dailyState(owner);
+  return {
+    t: 'daily', task: d.task, target: d.target, progress: d.progress,
+    done: d.done, reward: d.reward, points: await ownerPoints(owner), ...extra,
+  };
+}
+// walls this seat owns on the finished board (thrifty wins need the count)
+function wallsBy(state, seat) {
+  let n = 0;
+  for (const w of state.walls || []) if (w.by === seat) n++;
+  return n;
+}
+async function sendPush(sub, payload) {
+  if (!VAPID_PUBLIC || !VAPID_PRIVATE) return false;
+  try {
+    await webpush.sendNotification(
+      { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+      JSON.stringify(payload));
+    return true;
+  } catch (e) {
+    // dead endpoints go away: the client row turns itself off either way
+    if (e?.statusCode === 404 || e?.statusCode === 410) {
+      try { await removePushSub(sub.endpoint); } catch {}
+    }
+    return false;
+  }
+}
 
 /* ================= live state ================= */
 const socks = new Map();       // ws -> rec { device, conn, nick, roomId, seat, helloed, alive, ws }
@@ -606,22 +685,38 @@ async function endDuel(room, winner, reason, loserReason) {
   room.over = true;
   room.live = false;
   clearTurnTimer(room);
+  // pre-game ratings first: the loop itself moves points around
+  const pre = {};
+  for (const s of room.seats) if (s) pre[s.device] = await livePoints(s.device);
+  const tw = todayTask();
   for (let i = 0; i < room.seats.length; i++) {
     const s = room.seats[i];
     if (!s) continue;
     const opp = room.seats[1 - i];
     const won = i === winner;
-    const delta = pointsDelta(await livePoints(s.device), opp ? await livePoints(opp.device) : 0, won);
+    const delta = pointsDelta(pre[s.device] || 0, opp ? pre[opp.device] || 0 : 0, won);
     const d = await addGame(s.device, delta, won);
-    recordDay(await ownerOf(s.device), s.nick, delta, won);
+    const owner = await ownerOf(s.device);
+    await recordDay(owner, s.nick, delta, won);
+    const adv = await advanceStreak(owner.id);
+    const wb = wallsBy(room.state, i);
+    const dn = await noteDailyGame(owner.id, {
+      won, walls: wb, quad: false,
+      thrifty: won && wb <= 3,
+      strong: won && (opp ? pre[opp.device] || 0 : 0) > (pre[s.device] || 0),
+    });
+    let total = d ? d.points : 0;
+    if (dn.justDone) total = await grantPoints(owner.id, tw.reward);
     const rec = recOfSeat(room, i);
     if (rec && rec.roomId === room.id) {
       send(rec.ws, {
         t: 'game_over', room: room.id, winner, you: i,
         reason: won ? reason : (loserReason || reason),
         ...(won ? {} : (loserReason ? { yourReason: loserReason } : {})),
-        points: { total: d ? d.points : 0 },
+        points: { total },
       });
+      send(rec.ws, { t: 'streak', room: room.id, streak: adv.days, best: adv.best, advanced: adv.advanced, froze: false });
+      send(rec.ws, await dailyMsg(owner.id, dn.justDone ? { justDone: true } : {}));
     }
   }
 }
@@ -642,22 +737,37 @@ async function endQuad(room, winner, reason) {
   room.live = false;
   clearTurnTimer(room);
   const field = Math.max(...await Promise.all(room.seats.filter(Boolean).map((s) => livePoints(s.device))));
+  const pre = {};
+  for (const s of room.seats) if (s) pre[s.device] = await livePoints(s.device);
+  const tw = todayTask();
   for (let i = 0; i < room.seats.length; i++) {
     const s = room.seats[i];
     if (!s) continue;
     const won = i === winner;
     const out = room.out[i];
     const outcome = won ? 'win' : (out === 'left' || out === 'resign' || out === 'time' ? 'quit' : 'loss');
-    const delta = quadPointsDelta(await livePoints(s.device), field, outcome);
+    const delta = quadPointsDelta(pre[s.device] || 0, field, outcome);
     const d = await addGame(s.device, delta, won);
-    recordDay(await ownerOf(s.device), s.nick, delta, won);
+    const owner = await ownerOf(s.device);
+    await recordDay(owner, s.nick, delta, won);
+    const adv = await advanceStreak(owner.id);
+    const wb = wallsBy(room.state, i);
+    const dn = await noteDailyGame(owner.id, {
+      won, walls: wb, quad: true,
+      thrifty: won && wb <= 3,
+      strong: won && field > (pre[s.device] || 0),
+    });
+    let total = d ? d.points : 0;
+    if (dn.justDone) total = await grantPoints(owner.id, tw.reward);
     const rec = recOfSeat(room, i);
     if (rec && rec.roomId === room.id) {
       send(rec.ws, {
         t: 'game_over', room: room.id, winner, you: i, reason,
-        points: { total: d ? d.points : 0 },
+        points: { total },
         players: await seatPlayers(room), out: { ...room.out },
       });
+      send(rec.ws, { t: 'streak', room: room.id, streak: adv.days, best: adv.best, advanced: adv.advanced, froze: false });
+      send(rec.ws, await dailyMsg(owner.id, dn.justDone ? { justDone: true } : {}));
     }
   }
 }
@@ -791,6 +901,8 @@ async function handleHello(ws, m) {
   }
   const pts = user ? user.points : d.points;
   const games = user ? user.games : d.games;
+  const owner = user ? 'u:' + user.id : (await ownerOf(device)).id;
+  const sv = await streakView(owner);
   // same tab reloaded: take over the old socket instead of haunting the count
   const old = recOf(device, conn);
   if (old) {
@@ -806,10 +918,11 @@ async function handleHello(ws, m) {
   send(ws, {
     t: 'hello_ok', token, online: onlineCount(),
     points: pts, veteran: games > 0,
-    streak: 0, streakBest: 0, streakToday: false,
-    streakState: 'none', streakLost: 0, streakFree: false,
+    streak: sv.streak, streakBest: sv.streakBest, streakToday: sv.streakToday,
+    streakState: sv.streakState, streakLost: sv.streakLost, streakFree: sv.streakFree,
   });
   await attach(rec);
+  send(ws, await dailyMsg(owner));
   broadcastLobby();
 }
 
@@ -1080,6 +1193,18 @@ async function onMessage(ws, raw) {
           mode: room.mode, walls: String(room.walls), time: room.timeMin,
         });
       } else {
+        // offline but reachable: knock via push, the invite code rides along
+        try {
+          const devs = await devicesOfOwner(targetId);
+          const subs = await subsForDevices(devs);
+          for (const s of subs) {
+            await sendPush(s, {
+              title: `${p.nick} wants to play`,
+              body: 'Tap to join their room before it fills.',
+              url: `/#${room.code}`,
+            });
+          }
+        } catch {}
         send(ws, { t: 'error' });
       }
       break;
@@ -1135,6 +1260,30 @@ setInterval(() => {
     try { ws.ping(); } catch {}
   }
 }, 25_000);
+
+// Streaks at risk get one knock a day: alive yesterday, nothing today.
+// Runs every half hour; push_log keeps it to a single knock per day.
+async function streakScan() {
+  try {
+    if (!VAPID_PUBLIC || !VAPID_PRIVATE) return;
+    const day = mskDay();
+    for (const owner of await streakRiskOwners()) {
+      if (await pushLogged(owner, day, 'streak')) continue;
+      const subs = await subsForDevices(await devicesOfOwner(owner));
+      if (!subs.length) continue;
+      let sent = false;
+      for (const s of subs) {
+        if (await sendPush(s, {
+          title: 'PathWars',
+          body: 'Your streak ends tonight — play one game to keep the fire alive.',
+          url: '/?go=quick',
+        })) sent = true;
+      }
+      if (sent) await logPush(owner, day, 'streak');
+    }
+  } catch (e) { console.error('[streak-scan]', e?.message || e); }
+}
+setInterval(streakScan, 30 * 60 * 1000);
 
 server.listen(PORT, () => {
   console.log(`PathWars server on http://127.0.0.1:${PORT} (app + /ws + /api)`);

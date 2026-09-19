@@ -35,6 +35,10 @@ git push -u origin main
 | `SUPABASE_ANON_KEY` | You have it (`sb_publishable_…`) |
 | `SUPABASE_SERVICE_KEY` | You have it (the long JWT) |
 | `DATABASE_URL` | Supabase dashboard → Project Settings → Database → **Connection string, pooler mode** (port `6543`). It contains a `[YOUR-PASSWORD]` placeholder — replace with your database password (set at project creation; reset it there if lost). Format: `postgresql://postgres.[ref]:[pw]@aws-0-…pooler.supabase.com:6543/postgres` |
+| `VAPID_PUBLIC` / `VAPID_PRIVATE` | Web Push keys (public one below is safe to share; the private one lives only in your local `play-local.bat` — copy it over, never commit it) |
+```
+VAPID_PUBLIC=BEUbHCc77JrKKef2UBXh20P1OtQPDk4YQATOZ1KmS7ZrvArzg2r7Nb-cP7gdZaOQIX5DX9X_COhLYWxusf6OBLc
+```
 
 `PORT` is set by Render itself — do not add it.
 

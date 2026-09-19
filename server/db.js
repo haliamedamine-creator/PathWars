@@ -172,6 +172,212 @@ export function incomingRequests(id) {
   return db.prepare('SELECT from_id FROM friend_requests WHERE to_id = ?').all(id).map((r) => r.from_id);
 }
 
+/* ---- streaks, daily tasks, push: one row per points-owner ----
+   Owner keying matches the leaderboard (account id when linked, else the
+   device), so one player is one streak everywhere. Days use Moscow. */
+db.exec(`
+CREATE TABLE IF NOT EXISTS streaks (
+  owner TEXT PRIMARY KEY,
+  days INTEGER NOT NULL DEFAULT 0,
+  best INTEGER NOT NULL DEFAULT 0,
+  last_day TEXT NOT NULL DEFAULT '',
+  lost_days INTEGER NOT NULL DEFAULT 0,
+  lost_at TEXT NOT NULL DEFAULT '',
+  freeze_month TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS daily_progress (
+  owner TEXT NOT NULL, day TEXT NOT NULL,
+  games INTEGER NOT NULL DEFAULT 0, wins INTEGER NOT NULL DEFAULT 0,
+  walls INTEGER NOT NULL DEFAULT 0, quad_games INTEGER NOT NULL DEFAULT 0,
+  thrifty INTEGER NOT NULL DEFAULT 0, strong INTEGER NOT NULL DEFAULT 0,
+  done INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (owner, day)
+);
+CREATE TABLE IF NOT EXISTS push_subs (
+  endpoint TEXT PRIMARY KEY,
+  device TEXT NOT NULL DEFAULT '',
+  p256dh TEXT NOT NULL DEFAULT '',
+  auth TEXT NOT NULL DEFAULT '',
+  lang TEXT NOT NULL DEFAULT 'en',
+  created INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS push_log (
+  owner TEXT NOT NULL, day TEXT NOT NULL, kind TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY (owner, day, kind)
+);
+`);
+
+export function yd() {
+  return new Date(Date.now() + 3 * 3600 * 1000 - 24 * 3600 * 1000).toISOString().slice(0, 10);
+}
+export function ym() {
+  return mskDay().slice(0, 7);
+}
+function streakRow(owner) {
+  return db.prepare('SELECT * FROM streaks WHERE owner = ?').get(owner)
+    || { owner, days: 0, best: 0, last_day: '', lost_days: 0, lost_at: '', freeze_month: '' };
+}
+// Idempotent: reading a stale streak archives an offerable one (>=3 days)
+// and zeroes the rest. Never invents a day without a finished game.
+export function streakBreakCheck(owner) {
+  const r = streakRow(owner);
+  const td = mskDay(), y = yd();
+  if (r.last_day && r.last_day !== td && r.last_day !== y) {
+    if (r.days >= 3 && !r.lost_days) {
+      db.prepare(`INSERT INTO streaks (owner, days, best, last_day, lost_days, lost_at, freeze_month)
+        VALUES (?, 0, ?, '', ?, ?, ?)
+        ON CONFLICT(owner) DO UPDATE SET days = 0, last_day = '', lost_days = excluded.lost_days, lost_at = excluded.lost_at`)
+        .run(owner, r.best, r.days, td, r.freeze_month);
+      return { ...r, days: 0, last_day: '', lost_days: r.days, lost_at: td };
+    }
+    if (r.days) {
+      db.prepare('UPDATE streaks SET days = 0, last_day = ? WHERE owner = ?').run('', owner);
+      return { ...r, days: 0, last_day: '' };
+    }
+  }
+  return r;
+}
+export function advanceStreak(owner) {
+  let r = streakBreakCheck(owner);
+  const td = mskDay(), y = yd();
+  if (r.last_day === td) return { days: r.days, best: r.best, advanced: false };
+  let days, advanced = true;
+  if (r.last_day === y && r.days > 0) days = r.days + 1;
+  else {
+    if (r.days >= 3 && !r.lost_days) {
+      db.prepare(`INSERT INTO streaks (owner, lost_days, lost_at)
+        VALUES (?, ?, ?) ON CONFLICT(owner) DO UPDATE SET lost_days = excluded.lost_days, lost_at = excluded.lost_at`)
+        .run(owner, r.days, td);
+      r = { ...r, lost_days: r.days, lost_at: td };
+    }
+    days = 1;
+  }
+  const best = Math.max(r.best, days);
+  db.prepare(`INSERT INTO streaks (owner, days, best, last_day, freeze_month)
+    VALUES (?, ?, ?, ?, ?) ON CONFLICT(owner) DO UPDATE SET days = excluded.days,
+    best = excluded.best, last_day = excluded.last_day`)
+    .run(owner, days, best, td, r.freeze_month);
+  return { days, best, advanced };
+}
+export function streakView(owner) {
+  const r = streakBreakCheck(owner);
+  const td = mskDay(), y = yd();
+  const state = !r.days && !r.lost_days ? 'none'
+    : r.last_day === td ? 'today'
+    : r.last_day === y ? 'risk'
+    : r.lost_days ? 'lost' : 'none';
+  return {
+    streak: r.days, streakBest: r.best, streakToday: r.last_day === td,
+    streakState: state, streakLost: r.lost_days || 0,
+    streakFree: (r.freeze_month || '') !== ym(),
+  };
+}
+export function restoreStreak(owner) {
+  const r = streakRow(owner);
+  if (!r.lost_days) return { ok: false };
+  const td = mskDay(), month = ym();
+  const days = r.lost_days;
+  const best = Math.max(r.best, days);
+  db.prepare(`INSERT INTO streaks (owner, days, best, last_day, lost_days, lost_at, freeze_month)
+    VALUES (?, ?, ?, ?, 0, '', ?) ON CONFLICT(owner) DO UPDATE SET days = excluded.days,
+    best = excluded.best, last_day = excluded.last_day, lost_days = 0, lost_at = '',
+    freeze_month = excluded.freeze_month`)
+    .run(owner, days, best, td, month);
+  return { ok: true, streak: days };
+}
+const DAY_TASKS = [
+  { task: 'play4', target: 4, reward: 10 },
+  { task: 'win2', target: 2, reward: 15 },
+  { task: 'walls12', target: 12, reward: 10 },
+  { task: 'win_human', target: 2, reward: 15 },
+  { task: 'win_thrifty', target: 1, reward: 20 },
+  { task: 'win3', target: 3, reward: 25 },
+  { task: 'win_strong', target: 1, reward: 30 },
+  { task: 'quad_play', target: 2, reward: 15 },
+];
+export function todayTask() {
+  const start = Date.UTC(Number(mskDay().slice(0, 4)), 0, 0);
+  const doy = Math.floor((Date.now() + 3 * 3600 * 1000 - start) / 86400000);
+  return DAY_TASKS[((doy % DAY_TASKS.length) + DAY_TASKS.length) % DAY_TASKS.length];
+}
+function dailyRow(owner) {
+  const day = mskDay();
+  db.prepare(`INSERT INTO daily_progress (owner, day) VALUES (?, ?)
+    ON CONFLICT(owner, day) DO NOTHING`).run(owner, day);
+  return db.prepare('SELECT * FROM daily_progress WHERE owner = ? AND day = ?').get(owner, day);
+}
+function taskProgress(task, row) {
+  switch (task) {
+    case 'play4': return row.games;
+    case 'win2': case 'win3': case 'win_human': return row.wins;
+    case 'walls12': return row.walls;
+    case 'win_thrifty': return row.thrifty;
+    case 'win_strong': return row.strong;
+    case 'quad_play': return row.quad_games;
+    default: return row.games;
+  }
+}
+// One finished online game. Returns the progress line for the daily card;
+// justDone is true exactly on the game that closed the task.
+export function noteDailyGame(owner, { won, walls, quad, thrifty, strong }) {
+  const t = todayTask();
+  const day = mskDay();
+  dailyRow(owner); // ensure first: UPDATE on a missing row would drop this game
+  db.prepare(`UPDATE daily_progress SET games = games + 1, wins = wins + ?,
+    walls = walls + ?, quad_games = quad_games + ?, thrifty = thrifty + ?,
+    strong = strong + ? WHERE owner = ? AND day = ?`)
+    .run(won ? 1 : 0, walls, quad ? 1 : 0, thrifty ? 1 : 0, strong ? 1 : 0, owner, day);
+  const row = dailyRow(owner);
+  const progress = taskProgress(t.task, row);
+  const wasDone = Boolean(row.done);
+  const justDone = !wasDone && progress >= t.target;
+  if (justDone) db.prepare('UPDATE daily_progress SET done = 1 WHERE owner = ? AND day = ?').run(owner, day);
+  return { progress, done: wasDone || justDone, justDone };
+}
+export function dailyState(owner) {
+  const t = todayTask();
+  const row = dailyRow(owner);
+  return { task: t.task, target: t.target, progress: taskProgress(t.task, row), done: Boolean(row.done), reward: t.reward };
+}
+export function grantPoints(owner, n) {
+  if (owner.startsWith('u:')) {
+    db.prepare('UPDATE users SET points = points + ? WHERE id = ?').run(n, owner.slice(2));
+    return getUserById(owner.slice(2))?.points || 0;
+  }
+  db.prepare('UPDATE devices SET points = points + ? WHERE id = ?').run(n, owner);
+  return getDevice(owner)?.points || 0;
+}
+export function savePushSub({ endpoint, device, p256dh, auth, lang }) {
+  db.prepare(`INSERT INTO push_subs (endpoint, device, p256dh, auth, lang, created)
+    VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(endpoint) DO UPDATE SET device = excluded.device,
+    p256dh = excluded.p256dh, auth = excluded.auth, lang = excluded.lang`)
+    .run(endpoint, device, p256dh, auth, lang, Date.now());
+}
+export function removePushSub(endpoint) {
+  db.prepare('DELETE FROM push_subs WHERE endpoint = ?').run(endpoint);
+}
+export function subsForDevices(devices) {
+  if (!devices.length) return [];
+  const q = devices.map(() => '?').join(',');
+  return db.prepare(`SELECT endpoint, p256dh, auth FROM push_subs WHERE device IN (${q})`).all(...devices);
+}
+export function devicesOfOwner(owner) {
+  if (owner.startsWith('u:')) {
+    return db.prepare('SELECT id FROM devices WHERE user_id = ?').all(owner.slice(2)).map((r) => r.id);
+  }
+  return getDevice(owner) ? [owner] : [];
+}
+export function streakRiskOwners() {
+  // alive streaks whose day is not yet closed: they must play before midnight
+  return db.prepare('SELECT owner FROM streaks WHERE days > 0 AND last_day = ?').all(yd()).map((r) => r.owner);
+}
+export function pushLogged(owner, day, kind) {
+  return Boolean(db.prepare('SELECT 1 FROM push_log WHERE owner = ? AND day = ? AND kind = ?').get(owner, day, kind));
+}
+export function logPush(owner, day, kind) {
+  db.prepare('INSERT OR IGNORE INTO push_log (owner, day, kind) VALUES (?, ?, ?)').run(owner, day, kind);
+}
+
 /* ---- visits: raw analytics rows behind /api/visit ----
    One row per call (the client fires on boot, per game and on install).
    Day uses the Moscow boundary like everything else. */
