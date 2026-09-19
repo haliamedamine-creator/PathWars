@@ -748,12 +748,23 @@ function requestSync() {
   if (ws && ws.readyState === 1) wsSend({ t: 'sync' });
 }
 
+/* One id per tab (sessionStorage survives reloads in the same tab but is
+   unique across tabs). The server uses it to tell "same tab reloaded, take
+   over the old socket" apart from "a second tab" — without it, refreshes
+   haunted the online count and tabs stole each other's games. */
+let connId = null;
+try { connId = sessionStorage.getItem('wr_conn') || null; } catch {}
+if (!connId) {
+  connId = (crypto.randomUUID ? crypto.randomUUID() : 'c' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+  try { sessionStorage.setItem('wr_conn', connId); } catch {}
+}
+
 /* Introducing ourselves to the game server. This is where the pass matters
    most: get it wrong and the player is a guest for the whole connection,
    with their points going to the device instead of their account. */
 async function sendHello() {
   const jwt = await freshToken();
-  wsSend({ t: 'hello', nick: myNick(), token: wsToken, device: deviceId,
+  wsSend({ t: 'hello', nick: myNick(), token: wsToken, device: deviceId, conn: connId,
            tz: new Date().getTimezoneOffset(), jwt });
 }
 
@@ -775,6 +786,8 @@ function watchdogTick() {
 }
 
 function connectWs() {
+  // never two sockets at once: a live or connecting one wins, the call is dropped
+  if (ws && (ws.readyState === 0 || ws.readyState === 1)) return;
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${location.host}/ws`);
   ws.onopen = async () => {

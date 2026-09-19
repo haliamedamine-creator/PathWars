@@ -384,12 +384,23 @@ const server = http.createServer((req, res) => {
 });
 
 /* ================= live state ================= */
-const players = new Map();   // deviceId -> { ws, nick, roomId, seat, helloed }
-const conns = new Set();     // helloed sockets (for online count)
+const socks = new Map();       // ws -> rec { device, conn, nick, roomId, seat, helloed, alive, ws }
+const devConns = new Map();  // deviceId -> Set(rec); one device may hold several tabs
 const rooms = new Map();     // roomId -> room
 const byCode = new Map();    // code -> roomId
 const lobbySubs = new Set(); // sockets
-let quickWaiter = null;      // deviceId
+let quickWaiter = null;      // rec
+const onlineCount = () => { let n = 0; for (const r of socks.values()) if (r.helloed) n++; return n; };
+function devRecs(dev) { return devConns.get(dev) || new Set(); }
+function recOf(device, conn) {
+  for (const r of devRecs(device)) if (r.conn === conn) return r;
+  return null;
+}
+function recOfSeat(room, i) {
+  const s = room.seats[i];
+  return s ? recOf(s.device, s.conn) : null;
+}
+function sendToDevice(device, o) { for (const r of devRecs(device)) send(r.ws, o); }
 
 const seatsOf = (mode) => (mode === 'quad' ? 4 : 2);
 const send = (ws, o) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); };
@@ -398,18 +409,19 @@ const makeCode = () => Array.from({ length: 6 }, () => CODE_ABC[rnd(CODE_ABC.len
 const nowMs = () => Date.now();
 
 async function liveNick(dev) {
-  const p = players.get(dev);
-  if (p) return p.nick;
+  for (const r of devRecs(dev)) return r.nick;
   return (await getDevice(dev))?.nick || '?';
 }
 async function livePoints(dev) {
   return (await getDevice(dev))?.points || 0;
 }
 function isBusy(dev) {
-  const p = players.get(dev);
-  if (!p || p.roomId == null) return false;
-  const r = rooms.get(p.roomId);
-  return Boolean(r && r.live && !r.over);
+  for (const r of devRecs(dev)) {
+    if (r.roomId == null) continue;
+    const rm = rooms.get(r.roomId);
+    if (rm && rm.live && !rm.over) return true;
+  }
+  return false;
 }
 
 async function occupant(room, i) {
@@ -433,8 +445,8 @@ function clocksFor(room) {
 function broadcastRoom(room, o, except = null) {
   for (const s of room.seats) {
     if (!s) continue;
-    const p = players.get(s.device);
-    if (p && p.ws !== except && p.roomId === room.id) send(p.ws, o);
+    const rec = recOf(s.device, s.conn);
+    if (rec && rec.ws !== except && rec.roomId === room.id) send(rec.ws, o);
   }
 }
 
@@ -455,7 +467,7 @@ async function lobbyRooms() {
 }
 async function broadcastLobby() {
   try {
-    const msg = { t: 'lobby', online: conns.size, rooms: await lobbyRooms() };
+    const msg = { t: 'lobby', online: onlineCount(), rooms: await lobbyRooms() };
     for (const ws of lobbySubs) send(ws, msg);
   } catch (e) { console.error('[lobby]', e?.message || e); }
 }
@@ -494,8 +506,8 @@ function resumeRoom(room) {
 function anyoneAway(room) {
   return room.seats.some((s) => {
     if (!s) return false;
-    const p = players.get(s.device);
-    return !p || p.roomId !== room.id;
+    const r = recOf(s.device, s.conn);
+    return !r || !r.ws;
   });
 }
 
@@ -529,12 +541,12 @@ function leaveSeat(room, seat) {
   room.rematch.delete(seat);
 }
 
-function seatPlayer(room, device, nick) {
+function seatPlayer(room, device, conn, nick) {
   const i = freeSeat(room);
   if (i < 0) return -1;
-  room.seats[i] = { device, nick };
-  const p = players.get(device);
-  if (p) { p.roomId = room.id; p.seat = i; }
+  room.seats[i] = { device, conn, nick };
+  const rec = recOf(device, conn);
+  if (rec) { rec.roomId = room.id; rec.seat = i; }
   return i;
 }
 
@@ -570,8 +582,8 @@ async function startGame(room) {
   room.rematch.clear();
   broadcastLobby();
   for (let i = 0; i < room.seats.length; i++) {
-    const p = players.get(room.seats[i].device);
-    if (p) send(p.ws, await gameStartMsg(room, i));
+    const rec = recOfSeat(room, i);
+    if (rec) send(rec.ws, await gameStartMsg(room, i));
   }
   scheduleTurn(room);
 }
@@ -595,9 +607,9 @@ async function endDuel(room, winner, reason, loserReason) {
     const delta = pointsDelta(await livePoints(s.device), opp ? await livePoints(opp.device) : 0, won);
     const d = await addGame(s.device, delta, won);
     recordDay(await ownerOf(s.device), s.nick, delta, won);
-    const p = players.get(s.device);
-    if (p && p.roomId === room.id) {
-      send(p.ws, {
+    const rec = recOfSeat(room, i);
+    if (rec && rec.roomId === room.id) {
+      send(rec.ws, {
         t: 'game_over', room: room.id, winner, you: i,
         reason: won ? reason : (loserReason || reason),
         ...(won ? {} : (loserReason ? { yourReason: loserReason } : {})),
@@ -622,7 +634,7 @@ async function endQuad(room, winner, reason) {
   room.over = true;
   room.live = false;
   clearTurnTimer(room);
-  const field = Math.max(...room.seats.filter(Boolean).map((s) => livePoints(s.device)));
+  const field = Math.max(...await Promise.all(room.seats.filter(Boolean).map((s) => livePoints(s.device))));
   for (let i = 0; i < room.seats.length; i++) {
     const s = room.seats[i];
     if (!s) continue;
@@ -632,12 +644,12 @@ async function endQuad(room, winner, reason) {
     const delta = quadPointsDelta(await livePoints(s.device), field, outcome);
     const d = await addGame(s.device, delta, won);
     recordDay(await ownerOf(s.device), s.nick, delta, won);
-    const p = players.get(s.device);
-    if (p && p.roomId === room.id) {
-      send(p.ws, {
+    const rec = recOfSeat(room, i);
+    if (rec && rec.roomId === room.id) {
+      send(rec.ws, {
         t: 'game_over', room: room.id, winner, you: i, reason,
         points: { total: d ? d.points : 0 },
-        players: seatPlayers(room), out: { ...room.out },
+        players: await seatPlayers(room), out: { ...room.out },
       });
     }
   }
@@ -680,16 +692,14 @@ async function resignSeat(room, seat) {
 }
 
 /* ================= presence ================= */
-async function detach(device, reason) {
-  const p = players.get(device);
-  if (!p) return;
-  const room = p.roomId != null ? rooms.get(p.roomId) : null;
-  p.ws = null;
+async function detach(rec) {
+  const room = rec.roomId != null ? rooms.get(rec.roomId) : null;
+  rec.ws = null;
   if (!room) return;
   if (!room.live) {
     // waiting seats evaporate; the room dies empty
-    leaveSeat(room, p.seat);
-    p.roomId = null; p.seat = -1;
+    leaveSeat(room, rec.seat);
+    rec.roomId = null; rec.seat = -1;
     if (room.seats.every((s) => !s)) deleteRoom(room);
     else if (room.mode === 'quad') await sendRoomWait(room);
     broadcastLobby();
@@ -697,52 +707,50 @@ async function detach(device, reason) {
   }
   // mid-game disconnect: freeze the clocks, warn the table, start the clock on absence
   pauseRoom(room);
-  broadcastRoom(room, { t: 'opp_disconnected', room: room.id, clocks: clocksFor(room), nick: p.nick });
-  clearTimeout(room.forfeits.get(p.seat));
-  room.forfeits.set(p.seat, setTimeout(() => {
-    const pl = players.get(device);
-    const stillAway = !pl || pl.roomId !== room.id;
-    if (stillAway && !room.over && room.live && room.seats[p.seat]?.device === device) {
-      forfeitSeat(room, p.seat, 'left').catch((e) => console.error('[forfeit]', e?.message || e));
+  broadcastRoom(room, { t: 'opp_disconnected', room: room.id, clocks: clocksFor(room), nick: rec.nick });
+  clearTimeout(room.forfeits.get(rec.seat));
+  room.forfeits.set(rec.seat, setTimeout(() => {
+    const gone = !rec.ws && room.seats[rec.seat]?.device === rec.device && room.seats[rec.seat]?.conn === rec.conn;
+    if (gone && !room.over && room.live) {
+      forfeitSeat(room, rec.seat, 'left').catch((e) => console.error('[forfeit]', e?.message || e));
     }
   }, FORFEIT_MS));
 }
 
-async function attach(device, ws) {
-  const p = players.get(device);
-  if (!p) return;
-  p.ws = ws;
-  const room = p.roomId != null ? rooms.get(p.roomId) : null;
+async function attach(rec) {
+  const room = rec.roomId != null ? rooms.get(rec.roomId) : null;
   if (!room || !room.live || room.over) return;
-  clearTimeout(room.forfeits.get(p.seat));
-  room.forfeits.delete(p.seat);
+  clearTimeout(room.forfeits.get(rec.seat));
+  room.forfeits.delete(rec.seat);
   if (!anyoneAway(room)) resumeRoom(room);
-  const msg = await gameStartMsg(room, p.seat);
+  const msg = await gameStartMsg(room, rec.seat);
   msg.resumed = true;
-  send(ws, msg);
-  broadcastRoom(room, { t: 'opp_reconnected', room: room.id, clocks: clocksFor(room), nick: p.nick }, ws);
+  send(rec.ws, msg);
+  broadcastRoom(room, { t: 'opp_reconnected', room: room.id, clocks: clocksFor(room), nick: rec.nick }, rec.ws);
 }
 
 /* ================= friends (device-scoped guests) ================= */
 async function friendEntry(id) {
-  const p = players.get(id);
+  let nick = null, online = false;
+  for (const r of devRecs(id)) { nick = r.nick; if (r.ws) online = true; }
   const d = await getDevice(id);
   return {
-    id, nick: p ? p.nick : (d?.nick || '?'), points: d?.points || 0,
-    online: Boolean(p && p.ws), busy: isBusy(id), streak: 0,
+    id, nick: nick || d?.nick || '?', points: d?.points || 0,
+    online, busy: isBusy(id), streak: 0,
   };
 }
 async function pushFriends(device) {
-  const p = players.get(device);
-  if (!p || !p.ws) return;
-  send(p.ws, { t: 'friends', room: undefined, list: await Promise.all((await friendIds(device)).map(friendEntry)) });
-  send(p.ws, {
-    t: 'friend_requests', room: undefined,
-    list: await Promise.all((await incomingRequests(device)).map(async (id) => {
-      const d = await getDevice(id);
-      return { id, nick: d?.nick || '?', points: d?.points || 0 };
-    })),
-  });
+  const recs = [...devRecs(device)].filter((r) => r.ws);
+  if (!recs.length) return;
+  const list = await Promise.all((await friendIds(device)).map(friendEntry));
+  const reqs = await Promise.all((await incomingRequests(device)).map(async (id) => {
+    const d = await getDevice(id);
+    return { id, nick: d?.nick || '?', points: d?.points || 0 };
+  }));
+  for (const r of recs) {
+    send(r.ws, { t: 'friends', room: undefined, list });
+    send(r.ws, { t: 'friend_requests', room: undefined, list: reqs });
+  }
 }
 
 // Friend ops name devices, but player cards hand out account ids —
@@ -758,6 +766,8 @@ async function resolveTarget(id) {
 async function handleHello(ws, m) {
   const device = String(m.device || '');
   if (!device) return;
+  const conn = String(m.conn || '');
+  if (!conn) return;
   const nick = String(m.nick || '?').slice(0, 16);
   const token = crypto.randomUUID();
   const d = await upsertDevice(device, nick, token);
@@ -774,21 +784,30 @@ async function handleHello(ws, m) {
   }
   const pts = user ? user.points : d.points;
   const games = user ? user.games : d.games;
-  players.set(device, { ws, nick: d.nick, roomId: null, seat: -1, helloed: true });
-  conns.add(ws);
-  ws.device = device;
+  // same tab reloaded: take over the old socket instead of haunting the count
+  const old = recOf(device, conn);
+  if (old) {
+    if (old.ws && old.ws !== ws) { try { old.ws.close(); } catch {} }
+    old.ws = null; old.roomId = null; old.seat = -1;
+    const set = devConns.get(device);
+    if (set) set.delete(old);
+  }
+  const rec = { ws, device, conn, nick: d.nick, roomId: old?.roomId ?? null, seat: old?.seat ?? -1, helloed: true, alive: true };
+  socks.set(ws, rec);
+  if (!devConns.has(device)) devConns.set(device, new Set());
+  devConns.get(device).add(rec);
   send(ws, {
-    t: 'hello_ok', token, online: conns.size,
+    t: 'hello_ok', token, online: onlineCount(),
     points: pts, veteran: games > 0,
     streak: 0, streakBest: 0, streakToday: false,
     streakState: 'none', streakLost: 0, streakFree: false,
   });
-  await attach(device, ws);
+  await attach(rec);
   broadcastLobby();
 }
 
 function mySeat(ws) {
-  const p = players.get(ws.device);
+  const p = socks.get(ws);
   if (!p || p.roomId == null) return { p: null, room: null };
   const room = rooms.get(p.roomId);
   if (!room) { p.roomId = null; p.seat = -1; return { p, room: null }; }
@@ -805,20 +824,20 @@ function validRoomCfg(m) {
 }
 
 async function handleCreate(ws, m) {
-  const p = players.get(ws.device);
+  const p = socks.get(ws);
   if (!p) return;
   await leaveCurrentRoom(p, true);
   const { mode, walls, timeMin } = validRoomCfg(m);
   const isPrivate = Boolean(m.private);
   const room = newRoom({ mode, walls, timeMin, isPrivate, code: isPrivate ? makeCode() : null });
-  seatPlayer(room, ws.device, p.nick);
+  seatPlayer(room, p.device, p.conn, p.nick);
   send(ws, { t: 'room_created', room: room.id, mode, ...(room.code ? { code: room.code } : {}) });
   if (room.mode === 'quad') await sendRoomWait(room);
   broadcastLobby();
 }
 
-async function fillSeat(room, device, nick) {
-  const seat = seatPlayer(room, device, nick);
+async function fillSeat(room, device, conn, nick) {
+  const seat = seatPlayer(room, device, conn, nick);
   if (seat < 0) return -1;
   const taken = room.seats.filter(Boolean).length;
   if (taken >= seatsOf(room.mode)) await startGame(room);
@@ -829,43 +848,43 @@ async function fillSeat(room, device, nick) {
 
 async function handleJoinId(ws, id) {
   const room = rooms.get(id);
-  const p = players.get(ws.device);
+  const p = socks.get(ws);
   if (!p) return;
   if (!room || room.over) return send(ws, { t: 'error', code: 'room_not_found' });
   if (room.live) return send(ws, { t: 'error', code: 'room_full' });
   await leaveCurrentRoom(p, true);
-  if (await fillSeat(room, ws.device, p.nick) < 0) return send(ws, { t: 'error', code: 'room_full' });
+  if (await fillSeat(room, p.device, p.conn, p.nick) < 0) return send(ws, { t: 'error', code: 'room_full' });
 }
 
 async function handleJoinCode(ws, code) {
   const id = byCode.get(String(code || '').toUpperCase());
-  const p = players.get(ws.device);
+  const p = socks.get(ws);
   if (!p) return;
   const room = id ? rooms.get(id) : null;
   if (!room || room.over) return send(ws, { t: 'error', code: 'room_not_found' });
   if (room.live) return send(ws, { t: 'error', code: 'room_full' });
   await leaveCurrentRoom(p, true);
-  if (await fillSeat(room, ws.device, p.nick) < 0) return send(ws, { t: 'error', code: 'room_full' });
+  if (await fillSeat(room, p.device, p.conn, p.nick) < 0) return send(ws, { t: 'error', code: 'room_full' });
 }
 
 async function handleQuick(ws) {
-  const p = players.get(ws.device);
+  const p = socks.get(ws);
   if (!p) return;
   await leaveCurrentRoom(p, true);
-  if (quickWaiter && quickWaiter !== ws.device && players.get(quickWaiter)?.ws) {
+  if (quickWaiter && quickWaiter !== p && quickWaiter.ws) {
     const other = quickWaiter;
     quickWaiter = null;
     const room = newRoom({ mode: 'duel', walls: 10, timeMin: '5', isPrivate: true, code: null });
-    seatPlayer(room, other, players.get(other).nick);
-    seatPlayer(room, ws.device, p.nick);
+    seatPlayer(room, other.device, other.conn, other.nick);
+    seatPlayer(room, p.device, p.conn, p.nick);
     await startGame(room);
     return;
   }
-  quickWaiter = ws.device;
+  quickWaiter = p;
 }
 
 async function leaveCurrentRoom(p, silent) {
-  if (quickWaiter === pKey(p)) quickWaiter = null;
+  if (quickWaiter === p) quickWaiter = null;
   if (p.roomId == null) return;
   const room = rooms.get(p.roomId);
   const seat = p.seat;
@@ -896,10 +915,6 @@ async function leaveCurrentRoom(p, silent) {
     }
   }
   if (!silent) broadcastLobby();
-}
-function pKey(p) {
-  for (const [k, v] of players) if (v === p) return k;
-  return null;
 }
 
 async function handleMove(ws, move) {
@@ -955,8 +970,8 @@ async function handleRematch(ws, yes) {
         broadcastLobby();
         for (let i = 0; i < r.seats.length; i++) {
           if (!r.seats[i]) continue;
-          const pl = players.get(r.seats[i].device);
-          if (pl && pl.roomId === r.id) send(pl.ws, await gameStartMsg(r, i));
+          const rec = recOfSeat(r, i);
+          if (rec && rec.roomId === r.id) send(rec.ws, await gameStartMsg(r, i));
         }
         scheduleTurn(r);
       } else {
@@ -975,10 +990,10 @@ async function onMessage(ws, raw) {
   try { m = JSON.parse(raw); } catch { return; }
   if (!m || typeof m.t !== 'string') return;
   if (m.t === 'hello') { handleHello(ws, m).catch(() => {}); return; }
-  const p = players.get(ws.device);
+  const p = socks.get(ws);
   if (!p) return;
   switch (m.t) {
-    case 'lobby_sub': lobbySubs.add(ws); send(ws, { t: 'lobby', online: conns.size, rooms: await lobbyRooms() }); break;
+    case 'lobby_sub': lobbySubs.add(ws); send(ws, { t: 'lobby', online: onlineCount(), rooms: await lobbyRooms() }); break;
     case 'lobby_unsub': lobbySubs.delete(ws); break;
     case 'quick': await handleQuick(ws); break;
     case 'create_room': await handleCreate(ws, m); break;
@@ -1004,59 +1019,56 @@ async function onMessage(ws, raw) {
       break;
     }
     case 'rematch': await handleRematch(ws, Boolean(m.yes)); break;
-    case 'friends': await pushFriends(ws.device); break;
-    case 'friend_requests': await pushFriends(ws.device); break;
+    case 'friends': await pushFriends(p.device); break;
+    case 'friend_requests': await pushFriends(p.device); break;
     case 'friend_add': {
       const id = await resolveTarget(String(m.id || ''));
       if (id) {
-        await addFriendship(ws.device, id);
+        await addFriendship(p.device, id);
         send(ws, { t: 'friend_added' });
-        await pushFriends(ws.device);
-        const q = players.get(id);
-        if (q?.ws) { send(q.ws, { t: 'friend_added_you', nick: p.nick }); await pushFriends(id); }
+        await pushFriends(p.device);
+        sendToDevice(id, { t: 'friend_added_you', nick: p.nick }); await pushFriends(id);
       }
       break;
     }
     case 'friend_request': {
       const id = await resolveTarget(String(m.id || ''));
       if (id) {
-        await addRequest(ws.device, id);
+        await addRequest(p.device, id);
         send(ws, { t: 'friend_requested' });
-        const q = players.get(id);
-        if (q?.ws) { send(q.ws, { t: 'friend_request_in', nick: p.nick }); await pushFriends(id); }
+        sendToDevice(id, { t: 'friend_request_in', nick: p.nick }); await pushFriends(id);
       }
       break;
     }
     case 'friend_answer': {
       const id = String(m.id || '');
-      await answerRequest(id, ws.device, Boolean(m.yes));
+      await answerRequest(id, p.device, Boolean(m.yes));
       if (m.yes) {
         send(ws, { t: 'friend_added' });
-        await pushFriends(ws.device);
-        const q = players.get(id);
-        if (q?.ws) { send(q.ws, { t: 'friend_added_you', nick: p.nick }); await pushFriends(id); }
+        await pushFriends(p.device);
+        sendToDevice(id, { t: 'friend_added_you', nick: p.nick }); await pushFriends(id);
       } else {
-        await pushFriends(ws.device);
+        await pushFriends(p.device);
       }
-      const q = players.get(id);
-      if (q?.ws) send(q.ws, { t: 'friend_answered', yes: Boolean(m.yes) });
+      sendToDevice(id, { t: 'friend_answered', yes: Boolean(m.yes) });
       break;
     }
     case 'friend_remove': {
-      await removeFriendship(ws.device, String(m.id || ''));
+      await removeFriendship(p.device, String(m.id || ''));
       send(ws, { t: 'friend_removed', id: String(m.id || '') });
-      await pushFriends(ws.device);
+      await pushFriends(p.device);
       break;
     }
     case 'friend_call': {
-      const target = players.get(await resolveTarget(String(m.id || '')) || '');
+      const targetId = await resolveTarget(String(m.id || ''));
+      const targetOnline = targetId ? [...devRecs(targetId)].some((r) => r.ws) : false;
       const cfg = validRoomCfg(m);
       const room = newRoom({ mode: cfg.mode, walls: cfg.walls, timeMin: cfg.timeMin, isPrivate: true, code: makeCode() });
       await leaveCurrentRoom(p, true);
-      seatPlayer(room, ws.device, p.nick);
+      seatPlayer(room, p.device, p.conn, p.nick);
       send(ws, { t: 'room_created', room: room.id, mode: room.mode, code: room.code });
-      if (target?.ws) {
-        send(target.ws, {
+      if (targetOnline) {
+        sendToDevice(targetId, {
           t: 'friend_call', from: p.nick, code: room.code,
           mode: room.mode, walls: String(room.walls), time: room.timeMin,
         });
@@ -1075,15 +1087,17 @@ server.on('upgrade', (req, socket, head) => {
   wss.handleUpgrade(req, socket, head, (ws) => {
     // latency: small game frames must not wait for TCP delayed ACKs
     try { ws._socket?.setNoDelay?.(true); } catch {}
-    ws.device = null;
+    ws.on('pong', () => { const r = socks.get(ws); if (r) r.alive = true; });
     ws.on('message', (raw) => onMessage(ws, raw.toString()).catch((e) => console.error('[ws]', e?.message || e)));
     ws.on('close', () => {
+      const rec = socks.get(ws);
       lobbySubs.delete(ws);
-      conns.delete(ws);
-      if (quickWaiter && players.get(quickWaiter)?.ws !== ws) void 0;
-      if (ws.device) {
-        if (quickWaiter === ws.device) quickWaiter = null;
-        detach(ws.device).catch((e) => console.error('[close]', e?.message || e));
+      socks.delete(ws);
+      if (rec) {
+        const set = devConns.get(rec.device);
+        if (set) { set.delete(rec); if (!set.size) devConns.delete(rec.device); }
+        if (quickWaiter === rec) quickWaiter = null;
+        detach(rec).catch((e) => console.error('[close]', e?.message || e));
       }
       broadcastLobby();
     });
@@ -1103,6 +1117,17 @@ setInterval(() => {
   lastBeat = now;
   console.log(`[perf] loop-lag=${lag}ms rss=${Math.round(process.memoryUsage().rss / 1048576)}MB`);
 }, 60_000);
+
+// Dead sockets (killed proxies, vanished phones) never send close:
+// expect a pong to every ping, terminate whoever stays silent twice.
+setInterval(() => {
+  for (const [ws, rec] of socks) {
+    if (!rec.helloed) continue;
+    if (rec.alive === false) { try { ws.terminate(); } catch {} continue; }
+    rec.alive = false;
+    try { ws.ping(); } catch {}
+  }
+}, 25_000);
 
 server.listen(PORT, () => {
   console.log(`PathWars server on http://127.0.0.1:${PORT} (app + /ws + /api)`);
