@@ -833,8 +833,12 @@ async function handleMove(ws, move) {
     sendState(room, ws);
     return;
   }
+  // owner stamp: the client paints walls with seatColor(wall.by) and the
+  // engine stores no owner, so an unstamped wall renders in the default dark.
+  if (move.type === 'wall' && copy.walls.length) {
+    copy.walls[copy.walls.length - 1].by = p.seat;
+  }
   const spent = nowMs() - room.turnStartedAt + room.turnSpent;
-  room.banks[p.seat] = Math.max(0, room.banks[p.seat] - spent);
   room.state = copy;
   room.turnSpent = 0;
   room.turnStartedAt = nowMs();
