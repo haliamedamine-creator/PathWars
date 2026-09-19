@@ -826,6 +826,7 @@ async function handleMove(ws, move) {
   if (!p || !room || !room.live || room.over) return;
   if (!move || typeof move !== 'object') return;
   if (room.state.turn !== p.seat) return;
+  const t0 = nowMs();
   const copy = JSON.parse(JSON.stringify(room.state));
   if (!applyMove(copy, move)) {
     send(ws, { t: 'error', code: 'bad_move' });
@@ -844,6 +845,8 @@ async function handleMove(ws, move) {
   }
   sendState(room);
   scheduleTurn(room);
+  const dt = nowMs() - t0;
+  if (dt > 50) console.log(`[slow-move] ${dt}ms room=${room.id} seat=${p.seat}`);
 }
 
 async function handleRematch(ws, yes) {
@@ -1004,6 +1007,17 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 process.on('unhandledRejection', (e) => console.error('[unhandled]', e?.message || e));
+
+// Host health heartbeat: proves (or disproves) an underpowered box.
+// Event-loop lag = how late this 60s timer fired; rss = real memory use.
+// Read it in the host dashboard while a slow game is in progress.
+let lastBeat = Date.now();
+setInterval(() => {
+  const now = Date.now();
+  const lag = now - lastBeat - 60_000;
+  lastBeat = now;
+  console.log(`[perf] loop-lag=${lag}ms rss=${Math.round(process.memoryUsage().rss / 1048576)}MB`);
+}, 60_000);
 
 server.listen(PORT, () => {
   console.log(`PathWars server on http://127.0.0.1:${PORT} (app + /ws + /api)`);
