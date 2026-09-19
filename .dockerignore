@@ -1,0 +1,6 @@
+node_modules
+*.sqlite
+*.sqlite-journal
+play-local.bat
+.env
+.git
