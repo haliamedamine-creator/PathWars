@@ -985,6 +985,8 @@ server.on('upgrade', (req, socket, head) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname !== '/ws') { socket.destroy(); return; }
   wss.handleUpgrade(req, socket, head, (ws) => {
+    // latency: small game frames must not wait for TCP delayed ACKs
+    try { ws._socket?.setNoDelay?.(true); } catch {}
     ws.device = null;
     ws.on('message', (raw) => onMessage(ws, raw.toString()).catch((e) => console.error('[ws]', e?.message || e)));
     ws.on('close', () => {
