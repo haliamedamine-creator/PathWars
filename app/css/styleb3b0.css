@@ -70,12 +70,25 @@ body {
 .bg-dots i:nth-child(4n+2) { background: #21c07a; }
 .bg-dots i:nth-child(4n+3) { background: #1877f2; }
 .bg-dots i:nth-child(4n+4) { background: #ffc93c; }
-/* odd = walk horizontally on a horizontal grid line (top = 39 + k*40) */
+/* odd = zig-zag horizontally on a horizontal grid line | even = zig-zag vertically */
 .bg-dots i:nth-child(odd) { left: 0; animation: walkH linear infinite; }
-@keyframes walkH { from { transform: translateX(-14px); } to { transform: translateX(calc(100vw + 14px)); } }
-/* even = walk vertically on a vertical grid line (left = 39 + k*40) */
+@keyframes walkH {
+  0% { transform: translateX(-14px) translateY(0); }
+  20% { transform: translateX(20vw) translateY(-10px); }
+  40% { transform: translateX(40vw) translateY(10px); }
+  60% { transform: translateX(60vw) translateY(-10px); }
+  80% { transform: translateX(80vw) translateY(10px); }
+  100% { transform: translateX(calc(100vw + 14px)) translateY(0); }
+}
 .bg-dots i:nth-child(even) { top: 0; animation: walkV linear infinite; }
-@keyframes walkV { from { transform: translateY(-14px); } to { transform: translateY(calc(100vh + 14px)); } }
+@keyframes walkV {
+  0% { transform: translateY(-14px) translateX(0); }
+  20% { transform: translateY(20vh) translateX(-10px); }
+  40% { transform: translateY(40vh) translateX(10px); }
+  60% { transform: translateY(60vh) translateX(-10px); }
+  80% { transform: translateY(80vh) translateX(10px); }
+  100% { transform: translateY(calc(100vh + 14px)) translateX(0); }
+}
 .bg-dots i:nth-child(1) { top: 39px; width: 7px; height: 7px; animation-duration: 11s; animation-delay: -2s; }
 .bg-dots i:nth-child(2) { left: 79px; width: 7px; height: 7px; animation-duration: 13s; animation-delay: -4s; }
 .bg-dots i:nth-child(3) { top: 119px; width: 8px; height: 8px; animation-duration: 14s; animation-delay: -1s; }
