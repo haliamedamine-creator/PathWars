@@ -70,23 +70,33 @@ body {
 .bg-dots i:nth-child(4n+2) { background: #21c07a; }
 .bg-dots i:nth-child(4n+3) { background: #1877f2; }
 .bg-dots i:nth-child(4n+4) { background: #ffc93c; }
-/* odd = zig-zag horizontally on a horizontal grid line | even = zig-zag vertically */
+/* odd = walk horizontally on its grid line, zig-zagging to the next line at intersections */
 .bg-dots i:nth-child(odd) { left: 0; animation: walkH linear infinite; }
 @keyframes walkH {
   0% { transform: translateX(-14px) translateY(0); }
-  20% { transform: translateX(20vw) translateY(-10px); }
-  40% { transform: translateX(40vw) translateY(10px); }
-  60% { transform: translateX(60vw) translateY(-10px); }
-  80% { transform: translateX(80vw) translateY(10px); }
+  15% { transform: translateX(18vw) translateY(0); }
+  16% { transform: translateX(18vw) translateY(40px); }
+  30% { transform: translateX(36vw) translateY(40px); }
+  31% { transform: translateX(36vw) translateY(0); }
+  45% { transform: translateX(52vw) translateY(0); }
+  46% { transform: translateX(52vw) translateY(40px); }
+  60% { transform: translateX(70vw) translateY(40px); }
+  61% { transform: translateX(70vw) translateY(0); }
+  78% { transform: translateX(88vw) translateY(0); }
   100% { transform: translateX(calc(100vw + 14px)) translateY(0); }
 }
 .bg-dots i:nth-child(even) { top: 0; animation: walkV linear infinite; }
 @keyframes walkV {
   0% { transform: translateY(-14px) translateX(0); }
-  20% { transform: translateY(20vh) translateX(-10px); }
-  40% { transform: translateY(40vh) translateX(10px); }
-  60% { transform: translateY(60vh) translateX(-10px); }
-  80% { transform: translateY(80vh) translateX(10px); }
+  15% { transform: translateY(18vh) translateX(0); }
+  16% { transform: translateY(18vh) translateX(40px); }
+  30% { transform: translateY(36vh) translateX(40px); }
+  31% { transform: translateY(36vh) translateX(0); }
+  45% { transform: translateY(52vh) translateX(0); }
+  46% { transform: translateY(52vh) translateX(40px); }
+  60% { transform: translateY(70vh) translateX(40px); }
+  61% { transform: translateY(70vh) translateX(0); }
+  78% { transform: translateY(88vh) translateX(0); }
   100% { transform: translateY(calc(100vh + 14px)) translateX(0); }
 }
 .bg-dots i:nth-child(1) { top: 39px; width: 7px; height: 7px; animation-duration: 11s; animation-delay: -2s; }
