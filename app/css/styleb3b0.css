@@ -59,7 +59,44 @@ body {
   overscroll-behavior: none;
 }
 
-#app { max-width: 520px; margin: 0 auto; min-height: 100dvh; position: relative; }
+/* floating brand dots — every screen, behind #app, never blocks taps */
+.bg-dots { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+#app { max-width: 520px; margin: 0 auto; min-height: 100dvh; position: relative; z-index: 1; }
+.bg-dots i {
+  position: absolute; border-radius: 50%; opacity: .72;
+  animation: dotDrift linear infinite alternate;
+  will-change: transform; filter: blur(.2px);
+}
+@keyframes dotDrift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(18px, -14px, 0) scale(1.08); }
+  100% { transform: translate3d(-16px, 16px, 0) scale(.92); }
+}
+.bg-dots i:nth-child(4n+1) { background: #e5304f; }
+.bg-dots i:nth-child(4n+2) { background: #21c07a; }
+.bg-dots i:nth-child(4n+3) { background: #1877f2; }
+.bg-dots i:nth-child(4n+4) { background: #ffc93c; }
+.bg-dots i:nth-child(1) { left: 6%; top: 12%; width: 9px; height: 9px; animation-duration: 18s; animation-delay: -2s; }
+.bg-dots i:nth-child(2) { left: 88%; top: 18%; width: 7px; height: 7px; animation-duration: 22s; animation-delay: -5s; }
+.bg-dots i:nth-child(3) { left: 14%; top: 38%; width: 8px; height: 8px; animation-duration: 26s; animation-delay: -8s; }
+.bg-dots i:nth-child(4) { left: 78%; top: 34%; width: 6px; height: 6px; animation-duration: 20s; animation-delay: -3s; }
+.bg-dots i:nth-child(5) { left: 32%; top: 8%; width: 7px; height: 7px; animation-duration: 24s; animation-delay: -11s; }
+.bg-dots i:nth-child(6) { left: 92%; top: 62%; width: 9px; height: 9px; animation-duration: 28s; animation-delay: -7s; }
+.bg-dots i:nth-child(7) { left: 4%; top: 68%; width: 6px; height: 6px; animation-duration: 19s; animation-delay: -4s; }
+.bg-dots i:nth-child(8) { left: 46%; top: 22%; width: 8px; height: 8px; animation-duration: 21s; animation-delay: -9s; }
+.bg-dots i:nth-child(9) { left: 68%; top: 8%; width: 7px; height: 7px; animation-duration: 25s; animation-delay: -6s; }
+.bg-dots i:nth-child(10) { left: 22%; top: 82%; width: 9px; height: 9px; animation-duration: 23s; animation-delay: -10s; }
+.bg-dots i:nth-child(11) { left: 82%; top: 78%; width: 7px; height: 7px; animation-duration: 27s; animation-delay: -1s; }
+.bg-dots i:nth-child(12) { left: 38%; top: 52%; width: 6px; height: 6px; animation-duration: 20s; animation-delay: -12s; }
+.bg-dots i:nth-child(13) { left: 10%; top: 92%; width: 8px; height: 8px; animation-duration: 26s; animation-delay: -15s; }
+.bg-dots i:nth-child(14) { left: 58%; top: 88%; width: 7px; height: 7px; animation-duration: 22s; animation-delay: -3.5s; }
+.bg-dots i:nth-child(15) { left: 74%; top: 50%; width: 6px; height: 6px; animation-duration: 18s; animation-delay: -7.5s; }
+.bg-dots i:nth-child(16) { left: 18%; top: 56%; width: 7px; height: 7px; animation-duration: 24s; animation-delay: -9.5s; }
+.bg-dots i:nth-child(17) { left: 52%; top: 4%; width: 8px; height: 8px; animation-duration: 29s; animation-delay: -13s; }
+.bg-dots i:nth-child(18) { left: 88%; top: 88%; width: 6px; height: 6px; animation-duration: 21s; animation-delay: -2.5s; }
+.bg-dots i:nth-child(19) { left: 28%; top: 66%; width: 7px; height: 7px; animation-duration: 19s; animation-delay: -6.5s; }
+.bg-dots i:nth-child(20) { left: 62%; top: 36%; width: 8px; height: 8px; animation-duration: 26s; animation-delay: -11.5s; }
+@media (prefers-reduced-motion: reduce) { .bg-dots i { animation: none; opacity: .5; } }
 
 /* Ad networks inject their banners as a direct <body> child, outside #app,
    wherever they please. While a match is on screen (<html class="in-game">)
@@ -193,8 +230,23 @@ html.embedded .ad-slot { display: none !important; }
 .online-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
 @keyframes pulse { 50% { opacity: .4; } }
 
-.cards { display: flex; flex-direction: column; gap: 14px; }
-.cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  --bento-radius: 22px;
+}
+.cards > .card-primary { grid-column: 1 / -1; border-radius: var(--bento-radius); }
+.cards-row { display: contents; }
+.cards-row .card { border-radius: var(--bento-radius); }
+#btn-ai, #btn-how { border-radius: var(--bento-radius); }
+.cards .card { border-radius: var(--bento-radius); animation: cardIn .5s cubic-bezier(.2,.8,.3,1) both; }
+.cards .card:nth-child(1) { animation-delay: 0s; }
+.cards .card:nth-child(2) { animation-delay: .04s; }
+.cards .card:nth-child(3) { animation-delay: .08s; }
+.cards .card:nth-child(4) { animation-delay: .12s; }
+.cards .card:nth-child(5) { animation-delay: .16s; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
 .card {
   display: flex; align-items: center; gap: 14px; text-align: left;
   border: none; cursor: pointer; border-radius: var(--radius);
