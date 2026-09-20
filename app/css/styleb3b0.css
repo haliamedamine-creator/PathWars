@@ -327,10 +327,10 @@ html.embedded .ad-slot { display: none !important; }
 .how-text { text-align: left; margin: 10px 0; }
 
 .btn-big {
-  width: 100%; padding: 16px; border: none; border-radius: 16px; cursor: pointer;
-  font: inherit; font-size: 17px; font-weight: 600; color: #fff;
+  width: 100%; padding: 16px; border: none; border-radius: var(--radius-sm); cursor: pointer;
+  font: inherit; font-size: 17px; font-weight: 700; color: #fff;
   background: linear-gradient(120deg, var(--violet), var(--violet-dark));
-  box-shadow: 0 6px 18px rgba(229, 48, 79, .35);
+  box-shadow: 0 6px 18px rgba(229, 48, 79, .35), var(--shadow-soft);
   transition: transform .15s ease;
 }
 .btn-big:active { transform: scale(.97); }
@@ -457,7 +457,7 @@ html[data-theme="dark"] .soc { box-shadow: var(--shadow), inset 0 0 0 1px rgba(2
 .rooms-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; min-height: 120px; }
 .room-item {
   display: flex; align-items: center; gap: 12px;
-  background: var(--card); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow);
+  background: var(--card); border-radius: var(--radius-sm); padding: 14px 16px; box-shadow: var(--shadow), var(--shadow-soft); border: 1px solid rgba(255,255,255,.9);
 }
 .room-item .r-avatar {
   width: 40px; height: 40px; border-radius: 50%; flex: none;
@@ -502,12 +502,13 @@ html[data-theme="dark"] .soc { box-shadow: var(--shadow), inset 0 0 0 1px rgba(2
   box-shadow: var(--shadow);
 }
 
-/* VS row: two colored player pills */
-.vs-row { display: flex; align-items: stretch; gap: 8px; }
+/* VS row: two colored player pills — softer, more pill-like to match new bento */
+.vs-row { display: flex; align-items: stretch; gap: 10px; }
 .p-pill {
   flex: 1; display: flex; align-items: center; gap: 9px; min-width: 0;
-  border-radius: 16px; padding: 9px 10px; color: #fff;
-  box-shadow: 0 8px 18px rgba(30, 45, 90, .25), inset 0 1px 0 rgba(255,255,255,.25);
+  border-radius: 20px; padding: 10px 12px; color: #fff;
+  box-shadow: 0 10px 22px rgba(30, 45, 90, .18), inset 0 1px 0 rgba(255,255,255,.28);
+  border: 1px solid rgba(255,255,255,.22);
 }
 .p-pill.blue { background: linear-gradient(160deg, #33549c, #24407e); }
 .p-pill.red { background: linear-gradient(160deg, #d8404d, #b32538); }
@@ -526,14 +527,14 @@ html[data-theme="dark"] .soc { box-shadow: var(--shadow), inset 0 0 0 1px rgba(2
 .pill-info small { font-size: 11px; opacity: .85; }
 .p-pill .chip-clock {
   font-variant-numeric: tabular-nums; font-weight: 800; font-size: 15px;
-  background: rgba(255,255,255,.18); border-radius: 9px; padding: 5px 7px; color: #fff;
+  background: rgba(255,255,255,.20); border-radius: 999px; padding: 6px 10px; color: #fff;
 }
 .p-pill .chip-clock.danger { background: rgba(255, 90, 90, .55); animation: pulse 1s infinite; }
-.p-pill.turn-active { box-shadow: 0 0 0 3px #fff, 0 0 0 6px rgba(229, 48, 79, .50), 0 8px 18px rgba(30, 45, 90, .3); }
+.p-pill.turn-active { box-shadow: 0 0 0 3px #fff, 0 0 0 6px rgba(229, 48, 79, .45), 0 10px 22px rgba(30, 45, 90, .20); }
 .vs-badge {
-  align-self: center; background: var(--card); color: var(--muted);
-  font-weight: 800; font-size: 13px; border-radius: 12px; padding: 10px 9px;
-  box-shadow: var(--shadow); flex: none;
+  align-self: center; background: var(--card); color: var(--muted); border: 1px solid rgba(255,255,255,.9);
+  font-weight: 800; font-size: 13px; border-radius: 999px; padding: 10px 12px;
+  box-shadow: var(--shadow), var(--shadow-soft); flex: none;
 }
 
 .board-wrap { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: center; }
@@ -547,12 +548,12 @@ html[data-theme="dark"] .soc { box-shadow: var(--shadow), inset 0 0 0 1px rgba(2
 .zone-label.blue { color: #3b78e7; }
 .zone-label.red { color: #d8404d; }
 
-/* board: silver tray with a thin pencil grid */
+/* board: softer tray with rounder corners to match new bento */
 #board {
   position: relative; width: 100%; aspect-ratio: 1;
   max-width: min(87vw, 55dvh); margin: 16px auto;
   background: linear-gradient(168deg, #fdfdff, #f0f1f8 70%, #e9ebf4);
-  border-radius: 14px;
+  border-radius: 18px;
   box-shadow:
     0 0 0 11px var(--bezel),
     0 0 0 12px #aeb9cf,
@@ -570,8 +571,8 @@ html[data-theme="dark"] .soc { box-shadow: var(--shadow), inset 0 0 0 1px rgba(2
 
 /* translucent end zones with a bright bar on the board edge */
 .zone-band { position: absolute; z-index: 0; pointer-events: none; }
-.zone-band.top { border-radius: 13px 13px 0 0; }
-.zone-band.bottom { border-radius: 0 0 13px 13px; }
+.zone-band.top { border-radius: 17px 17px 0 0; }
+.zone-band.bottom { border-radius: 0 0 17px 17px; }
 .zone-band.top.red { background: linear-gradient(180deg, rgba(227, 61, 82, .30), rgba(227, 61, 82, .10) 65%, transparent); box-shadow: inset 0 3px 0 rgba(227, 61, 82, .85); }
 .zone-band.top.blue { background: linear-gradient(180deg, rgba(47, 109, 246, .30), rgba(47, 109, 246, .10) 65%, transparent); box-shadow: inset 0 3px 0 rgba(47, 109, 246, .85); }
 .zone-band.bottom.red { background: linear-gradient(0deg, rgba(227, 61, 82, .30), rgba(227, 61, 82, .10) 65%, transparent); box-shadow: inset 0 -3px 0 rgba(227, 61, 82, .85); }
@@ -757,8 +758,8 @@ html[data-theme="dark"] .pl-ball::after { background: rgba(0, 0, 0, .45); }
   animation: fadeIn .2s ease;
 }
 .modal {
-  width: min(88vw, 380px); background: var(--card); border-radius: 24px;
-  padding: 28px 22px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  width: min(88vw, 380px); background: var(--card); border-radius: var(--radius); border: 1px solid rgba(255,255,255,.9);
+  padding: 28px 22px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.18), var(--shadow);
   animation: modalIn .28s cubic-bezier(.4,1.4,.5,1);
   /* Content taller than the phone used to be clipped by the viewport with no
      way to reach it. Every dialog now scrolls instead of losing its tail. */
@@ -810,7 +811,8 @@ a.btn-big { text-decoration: none; display: block; }
 .lb-list { display: flex; flex-direction: column; gap: 10px; }
 .lb-item {
   display: flex; align-items: center; gap: 12px;
-  background: var(--card); border-radius: 16px; padding: 12px 16px; box-shadow: var(--shadow);
+  background: var(--card); border-radius: var(--radius-sm); padding: 12px 16px; box-shadow: var(--shadow), var(--shadow-soft);
+  border: 1px solid rgba(255,255,255,.9);
   /* every row opens that player's card, so every row has to look tappable */
   cursor: pointer; transition: transform .12s ease;
 }
@@ -830,8 +832,8 @@ a.btn-big { text-decoration: none; display: block; }
 
 /* ============ profile ============ */
 .profile-card {
-  background: var(--card); border-radius: 22px; padding: 24px; text-align: center;
-  box-shadow: var(--shadow); margin-bottom: 16px;
+  background: var(--card); border-radius: var(--radius); padding: 24px; text-align: center;
+  box-shadow: var(--shadow), var(--shadow-soft); border: 1px solid rgba(255,255,255,.9); margin-bottom: 16px;
 }
 .avatar {
   width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 10px;
@@ -846,7 +848,7 @@ a.btn-big { text-decoration: none; display: block; }
 .auth-msg { color: var(--red); font-size: 14px; text-align: center; }
 .auth-msg.ok { color: var(--green); }
 
-.settings-box { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); }
+.settings-box { background: var(--card); border-radius: var(--radius-sm); box-shadow: var(--shadow), var(--shadow-soft); border: 1px solid rgba(255,255,255,.9); overflow: hidden; }
 .setting-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 15px 18px; font-weight: 600;
@@ -856,7 +858,7 @@ a.btn-big { text-decoration: none; display: block; }
 .modal-emoji { font-size: 34px; line-height: 1; margin-bottom: 4px; }
 
 /* each way to help gets its own card, so neither reads as a footnote of the other */
-.opt-card { background: var(--bg2); border-radius: 18px; padding: 13px 13px 12px; margin-top: 12px; text-align: start; }
+.opt-card { background: var(--bg2); border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 12px; text-align: start; border: 1px solid rgba(255,255,255,.6); }
 .opt-head { display: flex; align-items: center; gap: 9px; }
 .opt-head b { font-size: 15px; }
 .opt-ico { font-size: 19px; line-height: 1; }
@@ -870,7 +872,7 @@ a.btn-big { text-decoration: none; display: block; }
 
 /* advertising formats */
 .fmt-list { display: grid; gap: 9px; margin-top: 14px; text-align: start; }
-.fmt { display: flex; align-items: flex-start; gap: 11px; background: var(--bg2); border-radius: 14px; padding: 12px 13px; }
+.fmt { display: flex; align-items: flex-start; gap: 11px; background: var(--bg2); border-radius: var(--radius-sm); padding: 12px 14px; border: 1px solid rgba(255,255,255,.6); }
 .fmt-ico { font-size: 18px; line-height: 1.2; flex: none; }
 .fmt b { display: block; font-size: 14px; }
 .fmt small { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; margin-top: 2px; }
@@ -954,10 +956,10 @@ a.btn-big { text-decoration: none; display: block; }
 
 .streak-card {
   display: flex; align-items: center; gap: 12px;
-  background: var(--bg2); border-radius: 16px; padding: 11px 14px; margin-top: 9px;
-  text-align: start;
+  background: var(--bg2); border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 12px;
+  text-align: start; border: 1px solid rgba(255,255,255,.6); box-shadow: var(--shadow-soft);
 }
-.streak-card.cold { opacity: .72; }
+.streak-card.cold { opacity: .76; }
 /* Offered only when a streak was lost, so it should read as a way back rather
    than as another thing to buy — icy blue, not the gold of the support button. */
 .btn-restore {
@@ -1060,8 +1062,8 @@ html[data-theme="dark"] .btn-restore { background: #1d2b46; color: #9fc8ff; bord
 /* ============ ladder: rank card, badges, points ============ */
 .rank-card {
   display: flex; align-items: center; gap: 13px;
-  background: var(--bg2); border-radius: 16px; padding: 12px 14px; margin: 14px 0 4px;
-  text-align: start;
+  background: var(--bg2); border-radius: var(--radius-sm); padding: 14px 16px; margin: 16px 0 10px;
+  text-align: start; border: 1px solid rgba(255,255,255,.7); box-shadow: var(--shadow-soft);
 }
 .rank-badge { font-size: 30px; line-height: 1; flex: none; }
 .rank-meta { flex: 1; min-width: 0; }
@@ -1285,7 +1287,7 @@ html[data-theme="dark"] .rooms-empty, html[data-theme="dark"] .lb-empty { color:
 .rv-score small { color: var(--muted); font-size: 12.5px; }
 .rv-stars { color: #ffc531; letter-spacing: 2px; }
 .rv-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-.rv-item { background: var(--card); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); }
+.rv-item {   background: var(--card); border-radius: var(--radius-sm); padding: 12px 14px; box-shadow: var(--shadow), var(--shadow-soft); border: 1px solid rgba(255,255,255,.9); }
 .rv-item .rv-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .rv-item b { font-size: 14px; }
 .rv-item p { margin: 6px 0 0; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
@@ -1297,8 +1299,8 @@ html[data-theme="dark"] .rv-score, html[data-theme="dark"] .rv-item { background
    enough that a player who does not care can look past it every day without
    being bothered, and clear enough to be read at a glance by one who does. */
 .daily { display: flex; align-items: center; gap: 12px; width: 100%;
-         background: var(--card); border: 0; border-radius: 16px;
-         padding: 12px 14px; margin: 0 0 12px; box-shadow: var(--shadow);
+         background: var(--card); border: 1px solid rgba(255,255,255,.9); border-radius: var(--radius-sm);
+         padding: 12px 14px; margin: 0 0 12px; box-shadow: var(--shadow), var(--shadow-soft);
          font: inherit; text-align: left; cursor: pointer;
          transition: transform .12s ease; }
 .daily:active { transform: scale(.985); }
@@ -1408,8 +1410,8 @@ html[data-theme="dark"] .rv-bt { background: #262c42; }
 .ads-flag b { font-size: 12.5px; color: var(--muted); font-weight: 600; }
 .ads-h { margin: 22px 0 10px; font-size: 16px; }
 .packs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.pack { display: flex; flex-direction: column; gap: 4px; text-align: left; border: 0;
-        background: var(--card); border-radius: 16px; padding: 13px 14px; font: inherit;
+.pack { display: flex; flex-direction: column; gap: 4px; text-align: left; border: 1px solid rgba(255,255,255,.9);
+        background: var(--card); border-radius: var(--radius-sm); padding: 13px 14px; font: inherit;
         box-shadow: var(--shadow); cursor: pointer; transition: transform .12s ease; }
 .pack:active { transform: scale(.978); }
 .pack-wide { grid-column: 1 / -1; }
