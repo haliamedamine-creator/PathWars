@@ -275,6 +275,19 @@ html.embedded .ad-slot { display: none !important; }
 .cards-row { display: contents; }
 .cards-row .card { border-radius: var(--bento-radius); }
 #btn-ai, #btn-how { border-radius: var(--bento-radius); }
+/* asymmetric bento: Play online goes tall (spans friend + AI rows),
+   How to play drops to a quiet full-width strip */
+#btn-online { grid-row: span 2; justify-content: center; align-items: center; text-align: center; }
+#btn-online .card-text { align-items: center; }
+#btn-online .card-icon { width: 56px; height: 56px; font-size: 27px; }
+#btn-how {
+  grid-column: 1 / -1; background: transparent; box-shadow: none;
+  border: 1px dashed var(--bezel); justify-content: center; padding: 12px 14px;
+}
+#btn-how .card-icon { width: 34px; height: 34px; font-size: 18px; background: var(--bg2); }
+#btn-how .card-text { flex: none; }
+#btn-how .card-text b { font-size: 14px; font-weight: 700; color: var(--muted); }
+#btn-how .card-arrow { display: none; }
 .cards .card { border-radius: var(--bento-radius); animation: cardIn .5s cubic-bezier(.2,.8,.3,1) both; }
 .cards .card:nth-child(1) { animation-delay: 0s; }
 .cards .card:nth-child(2) { animation-delay: .04s; }
