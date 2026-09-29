@@ -1,12 +1,12 @@
 // PathWars service worker: caches the app shell so the game opens instantly
 // and the AI mode keeps working offline. Pages go network-first (fresh
 // deploys land right away), versioned assets go cache-first.
-const V = '157';
+const V = '158';
 const CACHE = 'wr-' + V;
 const SHELL = [
   '/',
-  `/css/style.css?v=${V}`,
-  `/js/app.js?v=${V}`,
+  `/css/styleb3b0.css?v=${V}`,
+  `/js/appb3b0.js?v=${V}`,
   `/js/engine.js?v=${V}`,
   `/js/ai.js?v=${V}`,
   `/js/i18n.js?v=${V}`,
@@ -16,14 +16,15 @@ const SHELL = [
   `/js/nick.js?v=${V}`,
   `/js/portal.js?v=${V}`,
   `/js/ai-worker.js?v=${V}`,
-  // Persian, Turkish, French and Spanish load on demand, so with no signal
-  // they fell back to English — the app changed language the moment the train
-  // went into a tunnel. A few kilobytes each; cache them with the rest.
+  // Persian, Turkish, French, Spanish and Arabic load on demand, so with no
+  // signal they fell back to English — the app changed language the moment
+  // the train went into a tunnel. A few kilobytes each; cache them with the rest.
   `/js/lang/fa.js?v=${V}`,
   `/js/lang/tr.js?v=${V}`,
   `/js/lang/fr.js?v=${V}`,
   `/js/lang/es.js?v=${V}`,
-  `/vendor/supabase.js?v=${V}`,
+  `/js/lang/ar.js?v=${V}`,
+  `/vendor/supabaseb3b0.js?v=${V}`,
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

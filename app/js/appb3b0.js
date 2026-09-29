@@ -1,7 +1,7 @@
 // PathWars client app: screens, board UI, online play (WebSocket), AI mode, auth.
 import { initialState, applyMove, pawnMoves, canPlaceWall, goalRow, cloneState, wallBetween, N } from './engine.js?v=157';
 import { aiMove } from './ai.js?v=157';
-import { makeT, LANGS, LANG_CODES, RTL, loadLang } from './i18n.js?v=157';
+import { makeT, LANGS, LANG_CODES, RTL, loadLang } from './i18n.js?v=158';
 import { PACKS } from './packs.js?v=157';
 import { rankOf, nextRank } from './ranks.js?v=157';
 import { flameClass, isMilestone, FLAMES, MILESTONES } from './streak.js?v=157';
@@ -10,7 +10,7 @@ import {
   embedded, initPortal, inPortal, portalAd, portalPlaying, portalHappy,
   portalLoaded, portalInviteCode, portalShowInvite, portalHideInvite, portalInstant,
   portalRoom, portalOnJoin, portalInviteLink, portalMuted, portalOnMute, portalUserName,
-} from './portal.js?v=157';
+} from './portal.js?v=158';
 
 /* ================= state ================= */
 const $ = (id) => document.getElementById(id);
