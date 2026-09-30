@@ -476,7 +476,7 @@ const rooms = new Map();     // roomId -> room
 const byCode = new Map();    // code -> roomId
 const lobbySubs = new Set(); // sockets
 let quickWaiter = null;      // rec
-const onlineCount = () => { let n = 0; for (const r of socks.values()) if (r.helloed) n++; return n; };
+const onlineCount = () => { let n = 0; for (const r of socks.values()) if (r.helloed && r.ws) n++; return n; };
 function devRecs(dev) { return devConns.get(dev) || new Set(); }
 function recOf(device, conn) {
   for (const r of devRecs(device)) if (r.conn === conn) return r;
@@ -903,15 +903,20 @@ async function handleHello(ws, m) {
   const games = user ? user.games : d.games;
   const owner = user ? 'u:' + user.id : (await ownerOf(device)).id;
   const sv = await streakView(owner);
-  // same tab reloaded: take over the old socket instead of haunting the count
+  // same tab reloaded: take over the old socket instead of haunting the count.
+  // The old rec stays discoverable (close only nulls its ws), so prune only
+  // dead recs that hold no seat — a dead rec in a live room is a resume waiting.
+  const set0 = devConns.get(device);
+  if (set0) for (const r of [...set0]) if (!r.ws && r.roomId == null) set0.delete(r);
   const old = recOf(device, conn);
+  const oldRoom = old?.roomId ?? null, oldSeat = old?.seat ?? -1;
   if (old) {
     if (old.ws && old.ws !== ws) { try { old.ws.close(); } catch {} }
     old.ws = null; old.roomId = null; old.seat = -1;
     const set = devConns.get(device);
     if (set) set.delete(old);
   }
-  const rec = { ws, device, conn, nick: d.nick, roomId: old?.roomId ?? null, seat: old?.seat ?? -1, helloed: true, alive: true };
+  const rec = { ws, device, conn, nick: d.nick, roomId: oldRoom, seat: oldSeat, helloed: true, alive: true };
   socks.set(ws, rec);
   if (!devConns.has(device)) devConns.set(device, new Set());
   devConns.get(device).add(rec);
@@ -1226,8 +1231,8 @@ server.on('upgrade', (req, socket, head) => {
       lobbySubs.delete(ws);
       socks.delete(ws);
       if (rec) {
-        const set = devConns.get(rec.device);
-        if (set) { set.delete(rec); if (!set.size) devConns.delete(rec.device); }
+        // rec stays in devConns (ws nulled by detach): a reload finds it for
+        // takeover, a fresh tab is unaffected. Only the quick slot is cleared.
         if (quickWaiter === rec) quickWaiter = null;
         detach(rec).catch((e) => console.error('[close]', e?.message || e));
       }
