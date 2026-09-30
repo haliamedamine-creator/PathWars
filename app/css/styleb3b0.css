@@ -338,6 +338,8 @@ html.embedded .ad-slot { display: none !important; }
 }
 .hint { color: var(--muted); font-size: 14px; line-height: 1.5; }
 .how-text { text-align: left; margin: 10px 0; }
+/* How-to-play stays LTR even in Arabic: the rules read better unmirrored */
+html[dir="rtl"] #overlay-how .modal { direction: ltr; }
 
 .btn-big {
   width: 100%; padding: 16px; border: none; border-radius: var(--radius-sm); cursor: pointer;
