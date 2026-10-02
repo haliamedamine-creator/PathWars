@@ -436,9 +436,9 @@ html[data-theme="dark"] .legal-links span { color: #333c5c; }
 /* social links (home footer): brand-colored app-style tiles */
 .social-block { margin: 24px 0 6px; }
 .social-label { text-align: center; color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
-.social-row { display: flex; justify-content: center; gap: 14px; }
+.social-row { display: flex; justify-content: center; gap: 10px; }
 .soc {
-  width: 54px; height: 54px; border-radius: 17px; display: grid; place-items: center;
+  width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center;
   position: relative; overflow: hidden;
   box-shadow: var(--shadow);
 }
@@ -450,14 +450,16 @@ html[data-theme="dark"] .legal-links span { color: #333c5c; }
   pointer-events: none;
 }
 .soc:active { transform: scale(.9); }
-.soc svg { width: 29px; height: 29px; position: relative; }
+.soc svg { width: 26px; height: 26px; position: relative; }
 .soc-ig { background: radial-gradient(circle at 28% 100%, #ffd776 0%, #f9ce34 12%, #ee2a7b 52%, #a134c9 76%, #6228d7 100%); }
 .soc-fb { background: linear-gradient(180deg, #3b9ae4, #1877f2); }
+.soc-tt { background: #0d0d12; }
 .soc-tg { background: linear-gradient(180deg, #3fb2ea, #1d8fd0); }
 .soc-yt { background: linear-gradient(180deg, #ff2a2a, #d90000); }
 /* On a dark background the tiles keep a hairline edge so none of them
    turns into a floating glyph. */
 html[data-theme="dark"] .soc { box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,255,255,.12); }
+html[data-theme="dark"] .soc-tt { box-shadow: inset 0 0 0 1px #2f3550, var(--shadow); }
 .btn-danger { background: linear-gradient(120deg, #ff6b6b, #e0455e); box-shadow: 0 6px 18px rgba(255, 90, 90, .35); }
 .btn-link { background: none; border: none; color: var(--violet); font: inherit; font-size: 14px; cursor: pointer; padding: 6px; }
 
