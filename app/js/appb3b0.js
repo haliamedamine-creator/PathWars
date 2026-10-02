@@ -4035,7 +4035,32 @@ function renderPushRow() {
   }
   row.hidden = false;
   $('push-toggle').checked = Boolean(localStorage.getItem('wr_push'));
+  $('push-test').hidden = !$('push-toggle').checked;
 }
+
+/* One notification, right now, to this device. Reminders go out in the evening
+   and only to people who have not played that day, so someone who plays daily
+   can have them working perfectly and never see one — which is exactly how the
+   switch came to look broken. */
+$('push-test').addEventListener('click', async (e) => {
+  const btn = e.target;
+  btn.disabled = true;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) { toast(t('push_test_fail')); return; }
+    const r = await fetch('/api/push/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: sub.endpoint, lang }),
+    });
+    toast(t(r.ok ? 'push_test_sent' : 'push_test_fail'));
+  } catch {
+    toast(t('push_test_fail'));
+  } finally {
+    setTimeout(() => { btn.disabled = false; }, 5000);
+  }
+});
 
 $('push-toggle').addEventListener('change', async (e) => {
   const box = e.target;

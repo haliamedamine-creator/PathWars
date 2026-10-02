@@ -19,7 +19,7 @@ export const {
   logVisit,
   yd, ym, streakBreakCheck, advanceStreak, streakView, restoreStreak,
   todayTask, noteDailyGame, dailyState, grantPoints,
-  savePushSub, removePushSub, subsForDevices, devicesOfOwner,
+  savePushSub, removePushSub, subsForDevices, findSub, devicesOfOwner,
   streakRiskOwners, pushLogged, logPush,
   addFriendship, removeFriendship, friendIds, addRequest, answerRequest, incomingRequests,
 } = backend;

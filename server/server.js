@@ -27,7 +27,7 @@ import {
   logVisit,
   yd, streakBreakCheck, advanceStreak, streakView, restoreStreak,
   todayTask, noteDailyGame, dailyState, grantPoints,
-  savePushSub, removePushSub, subsForDevices, devicesOfOwner,
+  savePushSub, removePushSub, subsForDevices, findSub, devicesOfOwner,
   streakRiskOwners, pushLogged, logPush,
   addFriendship, removeFriendship, friendIds, addRequest, answerRequest, incomingRequests,
 } from './store.js';
@@ -418,6 +418,27 @@ async function handleApi(req, res) {
   if (p === '/api/push/unsubscribe' && req.method === 'POST') {
     const b = await readBody(req);
     if (b.endpoint) await removePushSub(String(b.endpoint));
+    return json(res, 200, { ok: true });
+  }
+
+  // One notification, right now, to the caller's own subscription.
+  // Proof on demand that reminders work — the body is localized here
+  // because the service worker just prints what it is handed.
+  if (p === '/api/push/test' && req.method === 'POST') {
+    const b = await readBody(req);
+    const sub = b.endpoint ? await findSub(String(b.endpoint)) : null;
+    if (!sub) return json(res, 400, { error: 'sub' });
+    const bodies = {
+      en: 'Test notification — reminders are on.',
+      ru: 'Тестовое уведомление — напоминания работают.',
+      ar: 'إشعار تجريبي — التذكيرات تعمل.',
+      es: 'Notificación de prueba — los recordatorios funcionan.',
+      fr: 'Notification de test — les rappels fonctionnent.',
+      tr: 'Test bildirimi — hatırlatmalar çalışıyor.',
+      fa: 'اعلان آزمایشی — یادآوری‌ها کار می‌کنند.',
+    };
+    const lang = String(b.lang || 'en').slice(0, 2);
+    await sendPush(sub, { title: 'PathWars', body: bodies[lang] || bodies.en, url: '/' });
     return json(res, 200, { ok: true });
   }
 

@@ -361,6 +361,9 @@ export function subsForDevices(devices) {
   const q = devices.map(() => '?').join(',');
   return db.prepare(`SELECT endpoint, p256dh, auth FROM push_subs WHERE device IN (${q})`).all(...devices);
 }
+export function findSub(endpoint) {
+  return db.prepare('SELECT endpoint, p256dh, auth FROM push_subs WHERE endpoint = ?').get(endpoint) || null;
+}
 export function devicesOfOwner(owner) {
   if (owner.startsWith('u:')) {
     return db.prepare('SELECT id FROM devices WHERE user_id = ?').all(owner.slice(2)).map((r) => r.id);

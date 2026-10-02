@@ -422,6 +422,10 @@ export async function subsForDevices(devices) {
   const r = await pool.query('SELECT endpoint, p256dh, auth FROM push_subs WHERE device = ANY($1)', [devices]);
   return r.rows;
 }
+export async function findSub(endpoint) {
+  const r = await pool.query('SELECT endpoint, p256dh, auth FROM push_subs WHERE endpoint = $1', [endpoint]);
+  return r.rows[0] || null;
+}
 export async function devicesOfOwner(owner) {
   if (owner.startsWith('u:')) {
     const r = await pool.query('SELECT id FROM devices WHERE user_id = $1', [owner.slice(2)]);
