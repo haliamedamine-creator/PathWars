@@ -1266,6 +1266,15 @@ html[data-theme="dark"] .emoji-bar button, html[data-theme="dark"] .btn-outline 
   flex: none; border: none; background: transparent; color: var(--violet);
   font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; padding: 6px 4px;
 }
+.rp-clip {
+  display: block; width: 100%; max-width: 460px; margin: 8px auto 0;
+  border: none; border-radius: 14px; padding: 12px 14px;
+  background: var(--blue); color: #fff; font: inherit; font-weight: 800; font-size: 15px;
+  cursor: pointer;
+}
+.rp-clip:active { transform: scale(.98); }
+.rp-clip:disabled { opacity: .75; cursor: default; }
+.rp-clip.ready { background: var(--green); }
 html[data-theme="dark"] #replay-bar { background: #171a28; box-shadow: 0 -6px 20px rgba(0,0,0,.5); }
 html[data-theme="dark"] .rp-btn { background: #2a3049; }
 html[data-theme="dark"] .rp-btn.rp-play { background: var(--blue); }

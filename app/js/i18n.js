@@ -348,6 +348,12 @@ export const I18N = {
     replay: '▶ Повтор игры',
     replay_close: 'Закрыть',
     replay_move: 'Ход',
+    clip_save: 'Сохранить видео',
+    clip_making: 'Делаем видео… %n%',
+    clip_moves: 'Ходов: %n',
+    clip_result: '%s побеждает',
+    clip_saved: 'Видео сохранено',
+    clip_fail: 'Не получилось сделать видео',
     follow_us: 'Мы в соцсетях',
     install_app: 'Приложение на экран',
     install_banner: 'Установи PathWars как приложение',
@@ -775,6 +781,12 @@ export const I18N = {
     replay: '▶ Watch replay',
     replay_close: 'Close',
     replay_move: 'Move',
+    clip_save: 'Save video',
+    clip_making: 'Making video… %n%',
+    clip_moves: '%n moves',
+    clip_result: '%s wins',
+    clip_saved: 'Video saved',
+    clip_fail: "Couldn't make the video",
     follow_us: 'Follow us',
     install_app: 'Install the app',
     install_banner: 'Install PathWars as an app',
@@ -871,7 +883,7 @@ export const LANGS = [
 export const LANG_CODES = LANGS.map((l) => l.code);
 export const RTL = new Set(['fa', 'ar']);
 
-const V = '158';
+const V = '161';
 
 // Loads a translation file on demand. Safe to call repeatedly and safe to fail:
 // if the request never lands, makeT keeps falling back to English.
