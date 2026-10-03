@@ -8,6 +8,9 @@ import { fileURLToPath } from 'node:url';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 export const db = new DatabaseSync(path.join(dir, 'pathwars.sqlite'));
+// WAL: readers never block writers. Without it, every hello's write
+// serializes the whole server behind it — the 3000-player wall.
+db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;');
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS devices (
@@ -116,6 +119,9 @@ export function upsertDevice(id, nick, token) {
       .run(id, nick || '', token, now);
     return getDevice(id);
   }
+  // steady-state hello (same nick): zero writes. Token rotation on every
+  // heartbeat was pure write amplification under load.
+  if (cur.nick === (nick || cur.nick)) return cur;
   db.prepare('UPDATE devices SET nick = ?, token = ?, updated_at = ? WHERE id = ?')
     .run(nick || cur.nick, token, now, id);
   return getDevice(id);

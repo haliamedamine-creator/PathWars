@@ -272,8 +272,9 @@ async function handleApi(req, res) {
     const b = await readBody(req);
     const np = await nickProblem(b.nick, u.id);
     if (np) return json(res, 200, np);
-    await setUserNick(u.id, String(b.nick).trim());
+    await     setUserNick(u.id, String(b.nick).trim());
     if (b.device) await linkDevice(String(b.device), u.id);
+    dirtyLobby(); // host rows show nick + rank
     return json(res, 200, { profile: toProfile(await getUserById(u.id)) });
   }
 
@@ -498,6 +499,23 @@ const byCode = new Map();    // code -> roomId
 const lobbySubs = new Set(); // sockets
 let quickWaiter = null;      // rec
 const onlineCount = () => { let n = 0; for (const r of socks.values()) if (r.helloed && r.ws) n++; return n; };
+// hello flood guard: reconnect storms back off instead of avalanching.
+// 200/10s per IP is generous on purpose — mobile carriers NAT thousands of
+// players behind one address, so this must never bite real traffic.
+// (HELLO_LIMIT env overrides it for load tests.)
+const HELLO_LIMIT = Number(process.env.HELLO_LIMIT || 200);
+const helloHits = new Map(); // ip -> { n, reset }
+function helloAllowed(ip) {
+  const now = Date.now();
+  let h = helloHits.get(ip);
+  if (!h || now > h.reset) {
+    if (helloHits.size > 5000) helloHits.clear();
+    h = { n: 0, reset: now + 10_000 };
+    helloHits.set(ip, h);
+  }
+  h.n++;
+  return h.n <= HELLO_LIMIT;
+}
 function devRecs(dev) { return devConns.get(dev) || new Set(); }
 function recOf(device, conn) {
   for (const r of devRecs(device)) if (r.conn === conn) return r;
@@ -574,9 +592,17 @@ async function lobbyRooms() {
 }
 async function broadcastLobby() {
   try {
-    const msg = { t: 'lobby', online: onlineCount(), rooms: await lobbyRooms() };
+    const msg = { t: 'lobby', online: onlineCount(), rooms: await cachedLobbyRooms() };
     for (const ws of lobbySubs) send(ws, msg);
   } catch (e) { console.error('[lobby]', e?.message || e); }
+}
+// The room list changes on room events, not on hellos: rebuild it only then.
+// Without this, every hello re-scans every room with a DB read per host.
+let lobbyRoomsCache = null;
+const dirtyLobby = () => { lobbyRoomsCache = null; };
+async function cachedLobbyRooms() {
+  if (!lobbyRoomsCache) lobbyRoomsCache = await lobbyRooms();
+  return lobbyRoomsCache;
 }
 
 /* ================= timers ================= */
@@ -631,6 +657,7 @@ function newRoom({ mode, walls, timeMin, isPrivate, code }) {
   };
   rooms.set(id, room);
   if (room.code) byCode.set(room.code, id);
+  dirtyLobby();
   return room;
 }
 function deleteRoom(room) {
@@ -639,6 +666,7 @@ function deleteRoom(room) {
   room.forfeits.clear();
   if (room.code) byCode.delete(room.code);
   rooms.delete(room.id);
+  dirtyLobby();
 }
 function freeSeat(room) {
   return room.seats.findIndex((s) => !s);
@@ -687,6 +715,7 @@ async function startGame(room) {
   room.winner = null;
   room.out = {};
   room.rematch.clear();
+  dirtyLobby();
   broadcastLobby();
   for (let i = 0; i < room.seats.length; i++) {
     const rec = recOfSeat(room, i);
@@ -757,6 +786,7 @@ async function endQuad(room, winner, reason) {
   room.over = true;
   room.live = false;
   clearTurnTimer(room);
+  dirtyLobby();
   const field = Math.max(...await Promise.all(room.seats.filter(Boolean).map((s) => livePoints(s.device))));
   const pre = {};
   for (const s of room.seats) if (s) pre[s.device] = await livePoints(s.device);
@@ -840,6 +870,7 @@ async function detach(rec) {
     rec.roomId = null; rec.seat = -1;
     if (room.seats.every((s) => !s)) deleteRoom(room);
     else if (room.mode === 'quad') await sendRoomWait(room);
+    dirtyLobby();
     broadcastLobby();
     return;
   }
@@ -988,6 +1019,7 @@ async function fillSeat(room, device, conn, nick) {
   const taken = room.seats.filter(Boolean).length;
   if (taken >= seatsOf(room.mode)) await startGame(room);
   else if (room.mode === 'quad') await sendRoomWait(room);
+  dirtyLobby();
   broadcastLobby();
   return seat;
 }
@@ -1041,6 +1073,7 @@ async function leaveCurrentRoom(p, silent) {
     if (room.seats.every((s) => !s)) deleteRoom(room);
     else {
       if (room.mode === 'quad') await sendRoomWait(room);
+      dirtyLobby();
       broadcastLobby();
     }
     return;
@@ -1135,11 +1168,20 @@ async function onMessage(ws, raw) {
   let m;
   try { m = JSON.parse(raw); } catch { return; }
   if (!m || typeof m.t !== 'string') return;
-  if (m.t === 'hello') { handleHello(ws, m).catch(() => {}); return; }
+  if (m.t === 'hello') {
+    if (!helloAllowed(ws._ip || '?')) {
+      // flood: tell them to back off instead of burning the loop
+      send(ws, { t: 'error', code: 'rate' });
+      try { ws.close(); } catch {}
+      return;
+    }
+    handleHello(ws, m).catch(() => {});
+    return;
+  }
   const p = socks.get(ws);
   if (!p) return;
   switch (m.t) {
-    case 'lobby_sub': lobbySubs.add(ws); send(ws, { t: 'lobby', online: onlineCount(), rooms: await lobbyRooms() }); break;
+    case 'lobby_sub': lobbySubs.add(ws); send(ws, { t: 'lobby', online: onlineCount(), rooms: await cachedLobbyRooms() }); break;
     case 'lobby_unsub': lobbySubs.delete(ws); break;
     case 'quick': await handleQuick(ws); break;
     case 'create_room': await handleCreate(ws, m); break;
@@ -1245,6 +1287,7 @@ server.on('upgrade', (req, socket, head) => {
   wss.handleUpgrade(req, socket, head, (ws) => {
     // latency: small game frames must not wait for TCP delayed ACKs
     try { ws._socket?.setNoDelay?.(true); } catch {}
+    try { ws._ip = req.socket.remoteAddress || '?'; } catch { ws._ip = '?'; }
     ws.on('pong', () => { const r = socks.get(ws); if (r) r.alive = true; });
     ws.on('message', (raw) => onMessage(ws, raw.toString()).catch((e) => console.error('[ws]', e?.message || e)));
     ws.on('close', () => {

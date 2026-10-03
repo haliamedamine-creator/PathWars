@@ -2,5 +2,8 @@
 node_modules/
 *.sqlite
 *.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
 play-local.bat
 .env
+server/storm.mjs
