@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to play PathWars — Quoridor rules with examples</title>
+<meta name="description" content="Learn PathWars step by step: the goal, moving your pawn, placing walls, jumping over opponents, the no-full-block rule, time limits and scoring — with board examples.">
+<link rel="canonical" href="https://pathwars.online/how-to-play">
+<link rel="alternate" hreflang="en" href="https://pathwars.online/how-to-play">
+<link rel="alternate" hreflang="ru" href="https://pathwars.online/ru/kak-igrat">
+<link rel="alternate" hreflang="x-default" href="https://pathwars.online/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="PathWars">
+<meta property="og:url" content="https://pathwars.online/how-to-play">
+<meta property="og:title" content="How to play PathWars — Quoridor rules with examples">
+<meta property="og:description" content="Move or wall, jump your rival, never block them off completely. The full tutorial with board examples.">
+<meta property="og:image" content="https://pathwars.online/icons/icon-512.png">
+<link rel="icon" href="icons/icon-192.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"How to play PathWars","description":"Step-by-step Quoridor tutorial: goal, movement, walls, jumps, the no-full-block rule, time and scoring.","author":{"@type":"Organization","name":"PathWars","url":"https://pathwars.online/"},"publisher":{"@type":"Organization","name":"PathWars"},"mainEntityOfPage":"https://pathwars.online/how-to-play","inLanguage":"en"}</script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0e1015; color: #eef1f7; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 22px 18px 64px; }
+  a { color: #8ab4ff; }
+  .top { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #6f7787; margin-bottom: 22px; }
+  .top a { text-decoration: none; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 0 0 10px; }
+  h2 { font-size: 20px; margin: 30px 0 8px; }
+  h3 { font-size: 17px; margin: 20px 0 6px; color: #c7cddb; }
+  p, ul, ol { margin: 10px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .lede { color: #b7bfcf; font-size: 17.5px; }
+  .play { display: inline-block; margin: 18px 0 6px; background: #4c7dff; color: #fff; text-decoration: none; font-weight: 600; padding: 14px 26px; border-radius: 12px; font-size: 17px; }
+  .board { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 14px 16px; margin: 14px 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.5; overflow-x: auto; white-space: pre; }
+  .facts { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 15px; }
+  .facts th, .facts td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #232838; vertical-align: top; }
+  .facts th { color: #9aa3b2; font-weight: 500; width: 38%; }
+  .more { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 4px 18px 14px; margin: 30px 0 0; }
+  footer { margin-top: 34px; color: #6f7787; font-size: 14px; line-height: 1.75; border-top: 1px solid #232838; padding-top: 16px; }
+  @media (max-width: 460px) { h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="top"><a href="index.html">← Play</a><a href="rules.html">Rules</a><a href="strategies.html">Strategies</a><a href="wall-placement.html">Wall tactics</a><a href="about.html">About</a><a href="ru/kak-igrat.html">Русский</a></nav>
+<h1>How to play PathWars</h1>
+<p class="lede">PathWars is Quoridor online: race your pawn to the far side of the board while spending walls to slow your rival down. A match takes two to five minutes; the rules take about two minutes to learn and a long time to master.</p>
+<a class="play" href="index.html">▶ Play now</a>
+
+<h2>1. The goal</h2>
+<p>In <b>Duel</b> (9×9) you start at the bottom edge and your rival starts at the top. The first pawn to reach the opposite edge wins — any square of that far row counts. In <b>Race</b> (9×13) both pawns start at the bottom, side by side, and run to the top row. In the <b>four-player game</b> (11×11) all four pawns race for the single golden cell in the very centre of the board.</p>
+
+<h2>2. Your turn: move or wall</h2>
+<p>Each turn you do exactly <b>one</b> thing:</p>
+<ul><li><b>Move</b> your pawn one square up, down, left or right (no diagonals — except for jumps, see below).</li><li><b>Place one wall</b> on the board. Walls are limited: 10 each in Duel, 10 or 15 each in Race (chosen when the room is created), 7 each with four players. Spent walls never come back.</li></ul>
+<p>You cannot move and wall on the same turn. That single choice — road for me, or trouble for them — is the whole game.</p>
+
+<h2>3. How walls work</h2>
+<p>A wall sits <b>between</b> squares and is two squares long, placed either horizontally or vertically. A wall cannot be jumped over, only walked around. Pawns never leave the board and walls never overlap, but they may touch and form longer barriers — that is how real traps are built (see <a href="wall-placement.html">wall tactics</a>).</p>
+<div class="board">Duel, move 6. You (●) spent two walls to bend
+the rival's road to the right:
+
+  0  1  2  3  4  5  6  7  8
+0 .  .  .  .  ○  .  .  .  .   ← rival's start
+1 .  .  .  .  .  .  .  .  .
+2 .  .  .  ═══╦══  .  .  .     ← your walls
+3 .  .  .  .  ║  .  .  .  .
+4 .  .  .  .  ║  .  .  .  .
+5 .  .  .  .  .  .  .  .  .
+6 .  .  .  .  .  .  .  .  .
+7 .  .  .  .  .  .  .  .  .
+8 .  .  .  .  ●  .  .  .  .   ← your start</div>
+<p>The rival can no longer walk straight down the middle — the road now bends around the wall ends. Every wall you place should buy you more than it costs: count both roads before spending (more in <a href="strategies.html">strategies</a>).</p>
+
+<h2>4. Jumping over your rival</h2>
+<p>When the two pawns stand on adjacent squares, you may <b>jump</b> over the rival to the square directly behind them instead of an ordinary step. If a wall or the board edge sits right behind them, the jump goes <b>diagonally</b> to one of the two side squares. In the four-player game, if two pawns stand in a line directly ahead and there is nowhere to go but backwards, you may jump over both.</p>
+<div class="board">Straight jump:          Blocked jump → diagonal:
+
+.  .  .                 .  ═══╦══
+.  ●  .                 .  ●  ║
+.  ○  .                 .  ○  ║
+.  .  .  → land two      .  .  ║  → land left
+           squares ahead             or right</div>
+
+<h2>5. The rule that shapes everything: no full block</h2>
+<p>You may <b>never</b> place a wall that leaves any opponent with no route to their goal at all. The game checks every wall and simply refuses illegal ones. So a wall is always a detour, never a prison — the art is in forcing <i>long</i> detours cheaply while keeping your own road short.</p>
+
+<h2>6. Time limits</h2>
+<p>The room creator picks the format: no overall limit, 3 minutes or 5 minutes per player for the whole game. Either way, a single move may take at most <b>30 seconds</b> — miss it and you lose (in the four-player game you are out while the other three play on). Lose connection mid-game and you have 30 seconds to come back; across a game those pauses add up to one minute, then the next disconnect is a loss.</p>
+
+<h2>7. Your first game, move by move</h2>
+<ol><li>Tap <b>Quick match</b> — a nickname is assigned and an opponent is found in seconds.</li><li><b>Moves 1–3:</b> just run. Walk straight toward your goal and watch which way the rival runs.</li><li><b>Move 4+:</b> place your first wall only when you see the rival's road — bend it sideways, don't just drop a wall in front of yourself.</li><li><b>Endgame:</b> when both pawns are 2–3 rows from the goal, stop walling and count: if your road is shorter, just run — every wall you place now is a move you didn't spend running.</li></ol>
+<p>Practice against the computer first (<a href="ai.html">about the AI levels</a>) — it never judges and never waits.</p>
+
+<h2>8. Scoring and ranks</h2>
+<p>Public-room wins earn rating points: <b>+25</b> for a win, <b>+40</b> if the opponent outranked you; a loss costs 10, or 20 against a weaker rival. Rating never drops below zero. Points build ranks: Rookie → Student → Strategist → Wall Master → Pro → Legend → GOAT. Friend games by code and practice against the AI never touch the rating — they are for fun and training.</p>
+
+<h2>Beginner mistakes</h2>
+<ul><li><b>Walling too early.</b> Walls placed before you know the rival's plan usually bend nothing. Run first, wall second.</li><li><b>Chasing instead of racing.</b> If your road is shorter, run — don't spend moves slowing someone who is already behind.</li><li><b>Forgetting the jump.</b> Standing next to the rival is often a free two-square leap, not a traffic jam.</li><li><b>Burning the clock.</b> 30 seconds a move feels generous until the endgame. Decide your plan on the rival's move, not yours.</li></ul>
+
+<div class="more"><h2>What next</h2><ul><li><a href="rules.html">Formal rules reference</a> — the short authoritative version.</li><li><a href="wall-placement.html">Wall tactics</a> — corridors, funnels and when not to wall.</li><li><a href="strategies.html">Strategies</a> — path counting, tempo and endgame math.</li><li><a href="multiplayer.html">Multiplayer guide</a> — quick match, rooms and friend codes.</li><li><a href="faq.html">FAQ</a> — edge cases and troubleshooting.</li></ul><a class="play" href="index.html">▶ Open the game</a></div>
+<footer>PathWars — a free online game of Quoridor. <a href="index.html">Play</a> · <a href="about.html">About</a> · <a href="how-to-play.html">How to Play</a> · <a href="rules.html">Rules</a> · <a href="faq.html">FAQ</a> · <a href="contact.html">Contact</a> · <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a><br>Contact: <a href="mailto:contact@pathwars.online">contact@pathwars.online</a> · Telegram: <a href="https://t.me/PathWarsChannel">PathWarsChannel</a> · Advertising: <a href="mailto:ads@pathwars.online">ads@pathwars.online</a></footer>
+</div>
+</body>
+
+</html>

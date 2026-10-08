@@ -88,7 +88,8 @@ const MIME = {
   '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
   '.webmanifest': 'application/manifest+json', '.txt': 'text/plain; charset=utf-8',
 };
-const PAGES = ['ru', 'reviews', 'rules', 'help', 'terms', 'privacy', 'about', 'contact'];
+const PAGES = ['ru', 'reviews', 'rules', 'help', 'terms', 'privacy', 'about', 'contact',
+  'how-to-play', 'strategies', 'wall-placement', 'faq'];
 
 /* Ratings a visitor can see: the home pill, the JSON-LD and the reviews
    score block stay empty until real ratings exist, then the server fills
@@ -138,9 +139,10 @@ async function serveStatic(req, res) {
   }
   if (url.pathname === '/sitemap.xml') {
     const pages = ['', '/ru', '/reviews', '/rules', '/help', '/terms', '/privacy',
-      '/about', '/contact',
+      '/about', '/contact', '/how-to-play', '/strategies', '/wall-placement', '/faq',
       '/ru/pravila', '/ru/pomosh', '/ru/usloviya', '/ru/konfidencialnost',
-      '/ru/ob-igre', '/ru/kontakt'];
+      '/ru/ob-igre', '/ru/kontakt',
+      '/ru/kak-igrat', '/ru/strategii', '/ru/steny', '/ru/voprosy'];
     const xml = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
       pages.map((q) => `<url><loc>https://pathwars.online${q}</loc></url>`).join('') + '</urlset>';
     res.writeHead(200, { 'Content-Type': 'application/xml' });

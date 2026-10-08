@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wall placement tactics in PathWars — Quoridor wall guide</title>
+<meta name="description" content="How walls really work in PathWars: geometry, extending walls, corridors and funnels, the shoulder block, when not to wall, and the no-full-block rule with examples.">
+<link rel="canonical" href="https://pathwars.online/wall-placement">
+<link rel="alternate" hreflang="en" href="https://pathwars.online/wall-placement">
+<link rel="alternate" hreflang="ru" href="https://pathwars.online/ru/steny">
+<link rel="alternate" hreflang="x-default" href="https://pathwars.online/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="PathWars">
+<meta property="og:url" content="https://pathwars.online/wall-placement">
+<meta property="og:title" content="Wall placement tactics in PathWars">
+<meta property="og:description" content="Corridors, funnels, extensions and the walls you should never place — with board examples.">
+<meta property="og:image" content="https://pathwars.online/icons/icon-512.png">
+<link rel="icon" href="icons/icon-192.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Wall placement tactics in PathWars","description":"Quoridor wall guide: geometry, corridors, funnels, extensions and illegal walls.","author":{"@type":"Organization","name":"PathWars","url":"https://pathwars.online/"},"publisher":{"@type":"Organization","name":"PathWars"},"mainEntityOfPage":"https://pathwars.online/wall-placement","inLanguage":"en"}</script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0e1015; color: #eef1f7; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 22px 18px 64px; }
+  a { color: #8ab4ff; }
+  .top { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #6f7787; margin-bottom: 22px; }
+  .top a { text-decoration: none; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 0 0 10px; }
+  h2 { font-size: 20px; margin: 30px 0 8px; }
+  h3 { font-size: 17px; margin: 20px 0 6px; color: #c7cddb; }
+  p, ul, ol { margin: 10px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .lede { color: #b7bfcf; font-size: 17.5px; }
+  .play { display: inline-block; margin: 18px 0 6px; background: #4c7dff; color: #fff; text-decoration: none; font-weight: 600; padding: 14px 26px; border-radius: 12px; font-size: 17px; }
+  .board { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 14px 16px; margin: 14px 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.5; overflow-x: auto; white-space: pre; }
+  .more { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 4px 18px 14px; margin: 30px 0 0; }
+  footer { margin-top: 34px; color: #6f7787; font-size: 14px; line-height: 1.75; border-top: 1px solid #232838; padding-top: 16px; }
+  @media (max-width: 460px) { h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="top"><a href="index.html">← Play</a><a href="how-to-play.html">How to play</a><a href="strategies.html">Strategies</a><a href="rules.html">Rules</a><a href="about.html">About</a><a href="ru/steny.html">Русский</a></nav>
+<h1>Wall placement tactics</h1>
+<p class="lede">Walls are the only weapon in PathWars — and the scarcest resource. Ten walls in Duel, seven with four players, none ever refunded. This guide shows how they work geometrically and which placements actually win games.</p>
+<a class="play" href="index.html">▶ Practice now</a>
+
+<h2>1. Geometry first: what a wall covers</h2>
+<p>A wall sits <b>between</b> squares and spans exactly <b>two</b> edges — horizontal walls block movement between two pairs of rows, vertical walls between two pairs of columns. Walls never overlap, but they may touch end to end, forming barriers of any length. That is the key insight: one wall bends a road, two touching walls can redirect it entirely.</p>
+
+<h2>2. The corridor: two walls, one detour</h2>
+<div class="board">One wall bends. Two walls redirect:
+
+  .  .  .          .  ═══╦═════
+  .  ○  .          .  ○  ║  .
+  ═══╬══           ═══╬══║  .
+  .  .  .          .  .  ║  .
+                   rival must walk
+                   around BOTH ends</div>
+<p>The second wall doesn't just add — it <i>multiplies</i>, because the rival must now walk around the whole structure. Always ask before placing: does this wall extend something, or does it stand alone doing nothing?</p>
+
+<h2>3. The funnel: aim them, don't chase them</h2>
+<p>Beginners place walls directly in front of the rival pawn. Stronger players place walls where the rival <i>wants to go</i> — narrowing the promising roads so all paths collapse into one long detour. Watch the rival's shortest path for two moves first; then bend it where it is already committed, not where it starts.</p>
+
+<h2>4. The shoulder block</h2>
+<p>A vertical wall placed one column beside the rival's lane forces a sideways step at the worst moment — right when they are about to break through. It rarely adds many steps by itself, but it costs them the tempo: they step sideways while you step forward. Use it when roads are nearly equal and one step decides.</p>
+
+<h2>5. Extend, don't scatter</h2>
+<p>Five scattered walls bend five roads a little. Three touching walls bend one road a lot — and one long detour beats five small ones, because the rival can only walk one road at a time. The engine of the game agrees: the strongest computer moves cluster walls near the rival's shortest path and extend existing structures at choke points.</p>
+
+<h2>6. Walls you should never place</h2>
+<ul><li><b>The jealous wall.</b> Placed behind the rival, bending a road they already walked. It changes nothing and costs a move.</li><li><b>The symmetrical wall.</b> Mirroring your own side "just in case" — the rival never comes there, and you walled yourself in advance.</li><li><b>The endgame wall (usually).</b> Three rows from the goal, a wall costs a step and rarely buys one. Count first; run if the numbers favour you.</li><li><b>The illegal wall.</b> Any placement leaving someone with no route at all is refused by the game — in the four-player game this is checked against <i>everyone</i> still playing. If your wall keeps getting rejected, it means the structure is already nearly closed: walk around it instead.</li></ul>
+
+<h2>7. Defence: when the walls come at you</h2>
+<p>Don't panic and don't immediately "answer" every wall with one of your own — that doubles the cost. Instead: re-count your road (often the detour is 1–2 steps, cheaper than a wall), consider the jump (walls herd pawns together, and adjacency means free leaps), and only wall back when their structure is one wall away from something truly painful.</p>
+
+<h2>8. Quad tables: seven walls, three rivals</h2>
+<p>With four players every wall is watched by three people, and the no-full-block rule protects everyone at once. Spend only on the actual leader, spend late, and remember dead players' walls stay on the board — an elimination can close a road for free that you were about to pay for.</p>
+
+<div class="more"><h2>What next</h2><ul><li><a href="how-to-play.html">How to play</a> — jumps, time limits and first-game walkthrough.</li><li><a href="strategies.html">Strategies</a> — path counting, tempo and endgame math.</li><li><a href="ai.html">AI guide</a> — which computer level punishes weak walls.</li><li><a href="rules.html">Formal rules</a> — the authoritative short version.</li></ul><a class="play" href="index.html">▶ Open the game</a></div>
+<footer>PathWars — a free online game of Quoridor. <a href="index.html">Play</a> · <a href="about.html">About</a> · <a href="how-to-play.html">How to Play</a> · <a href="rules.html">Rules</a> · <a href="faq.html">FAQ</a> · <a href="contact.html">Contact</a> · <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a><br>Contact: <a href="mailto:contact@pathwars.online">contact@pathwars.online</a> · Telegram: <a href="https://t.me/PathWarsChannel">PathWarsChannel</a> · Advertising: <a href="mailto:ads@pathwars.online">ads@pathwars.online</a></footer>
+</div>
+</body>
+
+</html>

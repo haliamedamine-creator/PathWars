@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PathWars strategies — how to win at Quoridor online</title>
+<meta name="description" content="Real PathWars strategy: count both paths, spend walls like money, play the tempo, win the endgame race, and how four-player tables differ.">
+<link rel="canonical" href="https://pathwars.online/strategies">
+<link rel="alternate" hreflang="en" href="https://pathwars.online/strategies">
+<link rel="alternate" hreflang="ru" href="https://pathwars.online/ru/strategii">
+<link rel="alternate" hreflang="x-default" href="https://pathwars.online/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="PathWars">
+<meta property="og:url" content="https://pathwars.online/strategies">
+<meta property="og:title" content="PathWars strategies — how to win at Quoridor online">
+<meta property="og:description" content="Count both paths, spend walls like money, win the endgame race. Strategies learned from real games.">
+<meta property="og:image" content="https://pathwars.online/icons/icon-512.png">
+<link rel="icon" href="icons/icon-192.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"PathWars strategies","description":"Quoridor strategy guide: path counting, wall economy, tempo, endgame math and four-player play.","author":{"@type":"Organization","name":"PathWars","url":"https://pathwars.online/"},"publisher":{"@type":"Organization","name":"PathWars"},"mainEntityOfPage":"https://pathwars.online/strategies","inLanguage":"en"}</script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0e1015; color: #eef1f7; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 22px 18px 64px; }
+  a { color: #8ab4ff; }
+  .top { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #6f7787; margin-bottom: 22px; }
+  .top a { text-decoration: none; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 0 0 10px; }
+  h2 { font-size: 20px; margin: 30px 0 8px; }
+  h3 { font-size: 17px; margin: 20px 0 6px; color: #c7cddb; }
+  p, ul, ol { margin: 10px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .lede { color: #b7bfcf; font-size: 17.5px; }
+  .play { display: inline-block; margin: 18px 0 6px; background: #4c7dff; color: #fff; text-decoration: none; font-weight: 600; padding: 14px 26px; border-radius: 12px; font-size: 17px; }
+  .board { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 14px 16px; margin: 14px 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.5; overflow-x: auto; white-space: pre; }
+  .more { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 4px 18px 14px; margin: 30px 0 0; }
+  footer { margin-top: 34px; color: #6f7787; font-size: 14px; line-height: 1.75; border-top: 1px solid #232838; padding-top: 16px; }
+  @media (max-width: 460px) { h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="top"><a href="index.html">← Play</a><a href="how-to-play.html">How to play</a><a href="wall-placement.html">Wall tactics</a><a href="rules.html">Rules</a><a href="about.html">About</a><a href="ru/strategii.html">Русский</a></nav>
+<h1>PathWars strategies</h1>
+<p class="lede">Quoridor looks like a race and plays like an auction: every wall is a bid, and the winner is whoever spends wisely. These are the ideas that actually decide games — learned from watching thousands of real matches.</p>
+<a class="play" href="index.html">▶ Try them now</a>
+
+<h2>1. Count both paths, every turn</h2>
+<p>The single most important habit: before every move, count your shortest road to the goal <i>and</i> the rival's. A wall is good only if it lengthens their road more than the move it costs you. A wall that adds +3 to their path while your own path stays the same is a great deal; a wall that adds +1 while giving them a new idea is a waste. The game rewards this directly — short decisive games and clean wins climb fastest, while burnt walls leave you with nothing to run with.</p>
+
+<h2>2. Walls are money — don't spend early</h2>
+<p>You start rich (10 walls) and finish poor (0). Early walls are usually the worst ones: the board is empty, the rival's plan is unknown, and almost any wall can simply be walked around. The strongest pattern from real games:</p>
+<ul><li><b>Moves 1–4:</b> run. Take the centre or mirror the rival; spend at most one wall, and only to answer a direct threat.</li><li><b>Midgame:</b> spend when roads cross — bend the rival sideways where they are already committed.</li><li><b>Endgame (3 rows to go):</b> stop walling unless a single wall wins on the spot. Every wall now is a step you didn't take.</li></ul>
+
+<h2>3. Play the tempo, not the chase</h2>
+<p>If your road is shorter than the rival's, <b>run</b> — do not spend moves slowing someone who is already behind. Each wall you place is a move the rival gets for free. The classic blunder: a player two steps ahead spends three moves building a beautiful maze, and loses by one step. Chase only when you are behind or level — that is when every extra step on their road is worth your move.</p>
+<div class="board">You need 4 steps, rival needs 6.
+Walling (+2 for them) vs running:
+
+  Wall:  you 4, them 8 → you win by 4, but
+         spent 1 wall + 1 move.
+  Run:   you 3, them 6 → you win by 3, wall
+         saved for later. RUN.</div>
+
+<h2>4. Own the centre early</h2>
+<p>The middle columns are the crossroads of every Duel board. A pawn in the centre has options; a pawn squeezed to the edge has one road that a single wall can bend. Don't drift sideways without a reason — and if the rival drifts, that is exactly where your first wall should point.</p>
+
+<h2>5. Endgame math wins games</h2>
+<p>When both pawns are close to the goal, stop thinking in walls and start thinking in numbers. Count precisely: my steps vs their steps, whose move it is. Remember the jump — standing next to the rival near the goal is often a free two-square leap that flips the count. If the numbers say you win by running, run, even if a tempting wall is glowing.</p>
+
+<h2>6. Upset hunting (for rating)</h2>
+<p>A win pays 25 points, but beating someone ranked above you pays <b>40</b> — while losing to a weaker rival costs 20 instead of 10. If you want to climb: play opponents at or above your level, and don't farm rematches — from the fourth straight game against the same person points halve, and from the seventh they stop entirely. Change opponent and full scoring returns.</p>
+
+<h2>7. Four-player tables play differently</h2>
+<ul><li><b>Don't lead early.</b> The leader gets walled by three people. Stay second or third until the final stretch.</li><li><b>Walls are scarce (7).</b> Spend them on the actual leader, not on grudges.</li><li><b>Watch eliminations.</b> A player who misses moves is out and their walls stay — dead walls reshape everyone's road for free.</li><li><b>The centre is one cell.</b> Races are decided by who steps in first, so count turn order, not just distance: being closest means nothing if two rivals move before you.</li></ul>
+
+<h2>8. Train with the right AI</h2>
+<p>Easy forgives, Normal punishes hanging mistakes, Hard exploits weak walls, and Hardcore simply out-counts you. Practice a new idea against Easy, test it against Hard, and measure yourself against Hardcore — details in the <a href="ai.html">AI guide</a>. Practice games never touch your rating, so experiment freely.</p>
+
+<div class="more"><h2>What next</h2><ul><li><a href="how-to-play.html">How to play</a> — the full tutorial with examples.</li><li><a href="wall-placement.html">Wall tactics</a> — corridors, funnels and the no-wall rule.</li><li><a href="multiplayer.html">Multiplayer guide</a> — rooms, codes and matchmaking.</li><li><a href="rules.html">Formal rules</a> — the authoritative short version.</li></ul><a class="play" href="index.html">▶ Open the game</a></div>
+<footer>PathWars — a free online game of Quoridor. <a href="index.html">Play</a> · <a href="about.html">About</a> · <a href="how-to-play.html">How to Play</a> · <a href="rules.html">Rules</a> · <a href="faq.html">FAQ</a> · <a href="contact.html">Contact</a> · <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a><br>Contact: <a href="mailto:contact@pathwars.online">contact@pathwars.online</a> · Telegram: <a href="https://t.me/PathWarsChannel">PathWarsChannel</a> · Advertising: <a href="mailto:ads@pathwars.online">ads@pathwars.online</a></footer>
+</div>
+</body>
+
+</html>

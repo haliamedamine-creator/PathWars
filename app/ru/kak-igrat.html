@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Как играть в PathWars — правила кворидора с примерами</title>
+<meta name="description" content="Учимся играть в PathWars шаг за шагом: цель, ходы фишкой, стены, прыжки через соперника, запрет запирать, время на ход и очки — с примерами на доске.">
+<link rel="canonical" href="https://pathwars.online/ru/kak-igrat">
+<link rel="alternate" hreflang="ru" href="https://pathwars.online/ru/kak-igrat">
+<link rel="alternate" hreflang="en" href="https://pathwars.online/how-to-play">
+<link rel="alternate" hreflang="x-default" href="https://pathwars.online/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="PathWars">
+<meta property="og:url" content="https://pathwars.online/ru/kak-igrat">
+<meta property="og:title" content="Как играть в PathWars — правила с примерами">
+<meta property="og:description" content="Ход или стена, прыжок через соперника, запирать нельзя. Полный разбор с примерами.">
+<meta property="og:image" content="https://pathwars.online/icons/icon-512.png">
+<link rel="icon" href="../icons/icon-192.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Как играть в PathWars","description":"Пошаговый разбор кворидора: цель, движение, стены, прыжки, запрет запирать, время и очки.","author":{"@type":"Organization","name":"PathWars","url":"https://pathwars.online/"},"publisher":{"@type":"Organization","name":"PathWars"},"mainEntityOfPage":"https://pathwars.online/ru/kak-igrat","inLanguage":"ru"}</script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0e1015; color: #eef1f7; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 22px 18px 64px; }
+  a { color: #8ab4ff; }
+  .top { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #6f7787; margin-bottom: 22px; }
+  .top a { text-decoration: none; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 0 0 10px; }
+  h2 { font-size: 20px; margin: 30px 0 8px; }
+  h3 { font-size: 17px; margin: 20px 0 6px; color: #c7cddb; }
+  p, ul, ol { margin: 10px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .lede { color: #b7bfcf; font-size: 17.5px; }
+  .play { display: inline-block; margin: 18px 0 6px; background: #4c7dff; color: #fff; text-decoration: none; font-weight: 600; padding: 14px 26px; border-radius: 12px; font-size: 17px; }
+  .board { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 14px 16px; margin: 14px 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.5; overflow-x: auto; white-space: pre; }
+  .more { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 4px 18px 14px; margin: 30px 0 0; }
+  footer { margin-top: 34px; color: #6f7787; font-size: 14px; line-height: 1.75; border-top: 1px solid #232838; padding-top: 16px; }
+  @media (max-width: 460px) { h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="top"><a href="../index.html">← Играть</a><a href="../ru.html">О игре</a><a href="pravila.html">Правила</a><a href="strategii.html">Стратегии</a><a href="steny.html">Стены</a><a href="kontakt.html">Контакт</a></nav>
+<h1>Как играть в PathWars</h1>
+<p class="lede">PathWars — это кворидор онлайн: ведите фишку к дальнему краю поля, а стены тратьте на то, чтобы lengthen путь соперника. Партия длится две–пять минут, правила учатся за пару минут, а мастерство — годами.</p>
+<a class="play" href="../index.html">▶ Играть сейчас</a>
+
+<h2>1. Цель</h2>
+<p>В <b>Дуэли</b> (9×9) вы стартуете снизу, соперник — сверху. Кто первым довёл фишку до противоположного края (любой его клетки), тот выиграл. В <b>Гонке</b> (9×13) обе фишки стартуют снизу рядом и бегут наверх. <b>Вчетвером</b> (11×11) все четверо бегут к одной золотой клетке в самом центре.</p>
+
+<h2>2. Ход: шаг или стена</h2>
+<p>За ход делается ровно <b>одно</b> действие:</p>
+<ul><li><b>Шаг</b> фишкой на соседнюю клетку — вверх, вниз, влево или вправо (без диагоналей, кроме прыжков).</li><li><b>Стена</b> на доску. Запас ограничен: по 10 в дуэли, 10 или 15 в гонке (выбирается при создании комнаты), по 7 вчетвером. Потраченные стены не возвращаются.</li></ul>
+<p>Ходить и ставить стену за один ход нельзя. Этот единственный выбор — дорога себе или неприятности сопернику — и есть вся игра.</p>
+
+<h2>3. Как работают стены</h2>
+<p>Стена стоит <b>между</b> клетками и перекрывает сразу два прохода — горизонтально или вертикально. Через стену нельзя перепрыгнуть, только обойти. Стены не выходят за доску и не накладываются друг на друга, но могут касаться торцами и образовывать длинные барьеры — так строятся настоящие ловушки (см. <a href="steny.html">тактику стен</a>).</p>
+<div class="board">Дуэль, 6-й ход. Вы (●) двумя стенами
+загнули дорогу соперника вправо:
+
+  0  1  2  3  4  5  6  7  8
+0 .  .  .  .  ○  .  .  .  .   ← старт соперника
+1 .  .  .  .  .  .  .  .  .
+2 .  .  .  ═══╦══  .  .  .     ← ваши стены
+3 .  .  .  .  ║  .  .  .  .
+4 .  .  .  .  ║  .  .  .  .
+8 .  .  .  .  ●  .  .  .  .   ← ваш старт</div>
+<p>Прямо по центру соперник больше не пройдёт — дорогу придётся огибать. Каждая стена должна окупаться: считайте обе дороги до того, как тратить (подробнее — в <a href="strategii.html">стратегиях</a>).</p>
+
+<h2>4. Прыжок через соперника</h2>
+<p>Когда фишки стоят на соседних клетках, можно <b>перепрыгнуть</b> через соперника на клетку сразу за ним вместо обычного шага. Если прямо за ним стена или край доски — прыжок уходит <b>по диагонали</b> на одну из боковых клеток. Вчетвером, если перед вами в линию стоят сразу двое и идти кроме как назад некуда, можно перепрыгнуть через обоих.</p>
+
+<h2>5. Главное правило: запирать нельзя</h2>
+<p>Стену, после которой у соперника не остаётся <b>ни одного</b> пути к цели, ставить запрещено — игра просто не примет такой ход. Поэтому стена — это всегда объезд, а не тюрьма. Искусство в том, чтобы дешёво навязывать <i>длинные</i> объезды, а свою дорогу держать короткой.</p>
+
+<h2>6. Время</h2>
+<p>Формат выбирается при создании комнаты: без ограничения, 3 или 5 минут на игрока за всю партию. В любом случае на один ход даётся не больше <b>30 секунд</b> — не успели, значит проиграли (вчетвером — выбываете, остальные играют дальше). Пропала связь — есть 30 секунд, чтобы вернуться; на все отключения за партию даётся минута суммарно, дальше следующее отключение — поражение.</p>
+
+<h2>7. Первая партия по шагам</h2>
+<ol><li>Нажмите <b>«Быстрая игра»</b> — ник выдастся сам, соперник найдётся за секунды.</li><li><b>Ходы 1–3:</b> просто бегите. Идите прямо к цели и смотрите, куда бежит соперник.</li><li><b>С 4-го хода:</b> ставьте первую стену, только когда увидели дорогу соперника, — загибайте её вбок, а не лепите стену перед собой.</li><li><b>Концовка:</b> когда до цели 2–3 ряда, перестаньте wallить и считайте: если ваша дорога короче — просто бегите, каждая стена сейчас стоит несделанного шага.</li></ol>
+<p>Сначала потренируйтесь против компьютера — он не осуждает и не ждёт.</p>
+
+<h2>8. Очки и звания</h2>
+<p>Победы в публичных комнатах дают рейтинг: <b>+25</b> за победу, <b>+40</b>, если соперник выше званием; поражение снимает 10, а против более слабого — 20. Ниже нуля рейтинг не падает. Лестница званий: Новичок → Ученик → Стратег → Мастер стен → Про → Легенда → GOAT. Партии с другом по коду и тренировки с ИИ на рейтинг не влияют.</p>
+
+<h2>Ошибки новичков</h2>
+<ul><li><b>Ранние стены.</b> Поставленные до того, как понятен план соперника, обычно не гнут ничего. Сначала бег, потом стены.</li><li><b>Погоня вместо гонки.</b> Если ваша дорога короче — бегите, не тратьте ходы на того, кто и так позади.</li><li><b>Забытый прыжок.</b> Рядом с соперником — это часто бесплатный двойной скачок, а не пробка.</li><li><b>Сгоревшие часы.</b> 30 секунд на ход кажутся вечностью до концовки. Думайте на ходе соперника, а не на своём.</li></ul>
+
+<div class="more"><h2>Что дальше</h2><ul><li><a href="pravila.html">Правила</a> — короткая официальная версия.</li><li><a href="steny.html">Тактика стен</a> — коридоры, воронки и запрещённые стены.</li><li><a href="strategii.html">Стратегии</a> — подсчёт путей, темп и математика концовки.</li><li><a href="voprosy.html">Вопросы и ответы</a> — разбор тонкостей и проблем.</li></ul><a class="play" href="../index.html">▶ Открыть игру</a></div>
+<footer>PathWars — бесплатная онлайн-игра «Кворидор». <a href="../index.html">Играть</a> · <a href="kak-igrat.html">Как играть</a> · <a href="pravila.html">Правила</a> · <a href="voprosy.html">Вопросы</a> · <a href="ob-igre.html">О нас</a> · <a href="kontakt.html">Контакт</a> · <a href="usloviya.html">Условия</a> · <a href="konfidencialnost.html">Конфиденциальность</a><br>Связь: <a href="mailto:contact@pathwars.online">contact@pathwars.online</a> · Telegram: <a href="https://t.me/PathWarsChannel">PathWarsChannel</a> · Реклама: <a href="mailto:ads@pathwars.online">ads@pathwars.online</a></footer>
+</div>
+</body>
+
+</html>
