@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playing against the AI in PathWars — all four levels explained</title>
+<meta name="description" content="PathWars AI guide: what Easy, Normal, Hard and Hardcore actually do, how the computer thinks, how to train on each level, and tips to beat them. Practice never affects your rating.">
+<link rel="canonical" href="https://pathwars.online/ai">
+<link rel="alternate" hreflang="en" href="https://pathwars.online/ai">
+<link rel="alternate" hreflang="ru" href="https://pathwars.online/ru/kompyuter">
+<link rel="alternate" hreflang="x-default" href="https://pathwars.online/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="PathWars">
+<meta property="og:url" content="https://pathwars.online/ai">
+<meta property="og:title" content="Playing against the AI in PathWars">
+<meta property="og:description" content="What Easy, Normal, Hard and Hardcore do, how the computer thinks, and how to beat each level.">
+<meta property="og:image" content="https://pathwars.online/icons/icon-512.png">
+<link rel="icon" href="icons/icon-192.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Playing against the AI in PathWars","description":"Guide to the four PathWars AI levels: how they play, how to train on them, and how to beat them.","author":{"@type":"Organization","name":"PathWars","url":"https://pathwars.online/"},"publisher":{"@type":"Organization","name":"PathWars"},"mainEntityOfPage":"https://pathwars.online/ai","inLanguage":"en"}</script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0e1015; color: #eef1f7; font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 22px 18px 64px; }
+  a { color: #8ab4ff; }
+  .top { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #6f7787; margin-bottom: 22px; }
+  .top a { text-decoration: none; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 0 0 10px; }
+  h2 { font-size: 20px; margin: 30px 0 8px; }
+  p, ul, ol { margin: 10px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .lede { color: #b7bfcf; font-size: 17.5px; }
+  .play { display: inline-block; margin: 18px 0 6px; background: #4c7dff; color: #fff; text-decoration: none; font-weight: 600; padding: 14px 26px; border-radius: 12px; font-size: 17px; }
+  .lvl { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 14px 18px; margin: 14px 0; }
+  .lvl h3 { margin: 0 0 6px; font-size: 17px; }
+  .more { background: #171a22; border: 1px solid #232838; border-radius: 14px; padding: 4px 18px 14px; margin: 30px 0 0; }
+  footer { margin-top: 34px; color: #6f7787; font-size: 14px; line-height: 1.75; border-top: 1px solid #232838; padding-top: 16px; }
+  @media (max-width: 460px) { h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="top"><a href="index.html">← Play</a><a href="how-to-play.html">How to Play</a><a href="strategies.html">Strategies</a><a href="rules.html">Rules</a><a href="faq.html">FAQ</a><a href="about.html">About</a></nav>
+<h1>Playing against the AI</h1>
+<p class="lede">No opponent around at 3 a.m.? The computer is always awake. Four levels, from a gentle teacher to an opponent that out-counts almost every human — and practice games never touch your rating, so every experiment is free.</p>
+<a class="play" href="index.html">▶ Challenge the AI</a>
+
+<h2>The four levels</h2>
+<div class="lvl"><h3>🙂 Easy — learn the moves</h3>
+<p>Plays the strong move about a third of the time and a casual move the rest. Wins roughly one game in five against a beginner who knows the rules. Use it for your very first games and for testing a brand-new idea without pressure.</p></div>
+<div class="lvl"><h3>😎 Normal — a fair fight</h3>
+<p>Picks the strong move about half the time. Beats a casual player roughly every second game. This is the level to measure yourself against: when you beat Normal consistently, you are ready for real opponents.</p></div>
+<div class="lvl"><h3>🔥 Hard — punishes mistakes</h3>
+<p>Plays the strong move two times in three and wins about four games in five against average players. Hanging pawns, wasted walls and lazy endgames all get punished. Beat Hard regularly and you will hold your own in public rooms.</p></div>
+<div class="lvl"><h3>💀 Hardcore — the real engine</h3>
+<p>No holding back: a full game-tree search that thinks for over a second every move, examining your replies to every line and playing only into positions it can hold. It practically cannot be beaten — play it to find the holes in your game, not to pad your ego.</p></div>
+
+<h2>How the computer thinks</h2>
+<p>Honestly, and the same way this guide teaches <i>you</i> to think. Every move it measures both shortest paths — yours and its own — and weighs walls by how much they lengthen your road. Its wall candidates cluster around your shortest path and extend existing structures at choke points, exactly like the <a href="wall-placement.html">wall tactics</a> page recommends. The lower levels simply mix in weaker moves on purpose; Hardcore searches many moves deep and never blunders. If you want to understand why it beat you, replay the game: the <a href="how-to-play.html">endgame math</a> section shows how to count what it counted.</p>
+
+<h2>How to train on each level</h2>
+<ul><li><b>New to the game:</b> Easy until the rules feel automatic — movement, jumps, what a legal wall looks like.</li><li><b>Learning strategy:</b> Normal while working through <a href="strategies.html">path counting and tempo</a>. Try one new idea per game.</li><li><b>Before going public:</b> Hard until you win at least half your games. Public opponents play roughly at this level.</li><li><b>Plateaued?</b> Lose ten games to Hardcore and replay each one. You will see exactly which walls were wasted and which runs were mistimed.</li></ul>
+
+<h2>Tips to beat the computer</h2>
+<ul><li><b>Count, don't feel.</b> The AI always knows both path lengths. Match it: count every turn and you remove its biggest edge.</li><li><b>Punish its honesty.</b> Lower levels play weak moves on purpose — when it drifts, take the centre and make it pay before it recovers.</li><li><b>Endgames are yours.</b> Against Easy through Hard, precise endgame counting wins games: stop walling early and run the numbers.</li><li><b>Against Hardcore, aim small.</b> Don't try to out-wall it — keep your road short, force jumps, and take the one mistake it never makes twice.</li></ul>
+
+<h2>Good to know</h2>
+<ul><li>AI games never affect points, rank or the leaderboard — win or lose, your rating doesn't move.</li><li>The AI plays by the exact same rules as you: same walls, same clock, same refused illegal walls.</li><li>Stuck? The <a href="faq.html">FAQ</a> answers rule edge cases, and <a href="contact.html">we</a> answer everything else.</li></ul>
+
+<div class="more"><h2>What next</h2><ul><li><a href="how-to-play.html">How to Play</a> — the full tutorial with board examples.</li><li><a href="strategies.html">Strategies</a> — path counting, tempo and endgame math.</li><li><a href="wall-placement.html">Wall tactics</a> — corridors, funnels and illegal walls.</li><li><a href="faq.html">Multiplayer questions</a> — take your training to real opponents.</li></ul><a class="play" href="index.html">▶ Open the game</a></div>
+<footer>PathWars — a free online game of Quoridor. <a href="index.html">Play</a> · <a href="about.html">About</a> · <a href="how-to-play.html">How to Play</a> · <a href="rules.html">Rules</a> · <a href="faq.html">FAQ</a> · <a href="contact.html">Contact</a> · <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a><br>Contact: <a href="mailto:contact@pathwars.online">contact@pathwars.online</a> · Telegram: <a href="https://t.me/PathWarsChannel">PathWarsChannel</a> · Advertising: <a href="mailto:ads@pathwars.online">ads@pathwars.online</a></footer>
+</div>
+</body>
+
+</html>
